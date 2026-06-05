@@ -135,6 +135,10 @@ No server, no database, no build. A standard-library Python scanner writes a sin
 
 Open **`guide.html`** for the full walkthrough (architecture, folder structure, the daily workflow, the knowledge base, and Obsidian setup). The dashboard sidebar also links a **Best Practices** page and a **Claude News** feed.
 
+## Contributing
+
+PRs welcome, and the bar is low — no build tools, no dependencies, just clone and open it in a browser. See **[`CONTRIBUTING.md`](CONTRIBUTING.md)** for a five-minute dev setup, the one rule (stay zero-install), where things live, and good first issues.
+
 ## License
 
 MIT © 2026 Neaam Hariri — see [`LICENSE`](LICENSE).
