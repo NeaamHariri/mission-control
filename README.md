@@ -139,6 +139,10 @@ Open **`guide.html`** for the full walkthrough (architecture, folder structure, 
 
 PRs welcome, and the bar is low — no build tools, no dependencies, just clone and open it in a browser. See **[`CONTRIBUTING.md`](CONTRIBUTING.md)** for a five-minute dev setup, the one rule (stay zero-install), where things live, and good first issues.
 
+## Author
+
+Built by **[Neaam Hariri](https://github.com/NeaamHariri)** — because Claude Code kept forgetting my projects between sessions, and I got tired of re-explaining. If Mission Control saves you that same friction, a ⭐ on the repo means a lot and helps others find it.
+
 ## License
 
 MIT © 2026 Neaam Hariri — see [`LICENSE`](LICENSE).
