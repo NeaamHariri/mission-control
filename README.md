@@ -2,6 +2,10 @@
 
 A **local, no-install command center** for all your Claude Code projects — status, milestones, todos, recent activity, usage & spend, architecture diagrams, and a per-project knowledge base, in one dark dashboard you open as a local file.
 
+![Mission Control dashboard](docs/dashboard.png)
+
+> The screenshot uses demo data; your dashboard shows your real projects.
+
 No server. No build step. No database. Just a Python script that scans your project folders and a few static HTML pages that render the result.
 
 ```
