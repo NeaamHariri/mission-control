@@ -4,6 +4,15 @@ Append-only log of what happened each session. Newest entry on top. The dashboar
 reads this (recent entries first) and `/update` both consults it for context and
 appends a new entry at the end of a session.
 
+## 2026-06-05 — Open-sourced + launch plan (positioning around project sprawl)
+
+- Open-sourced on GitHub: github.com/NeaamHariri/mission-control (MIT). Added README (feature-led pitch), CONTRIBUTING, `setup.sh` (one-command install, auto-detects projects root via `HERE.parent`/`MC_ROOT`), `.gitignore` (keeps personal data out), `commands/` (the 4 `/update*` files travel with the clone), hero PNG + a sanitized demo tour GIF.
+- Added **News** + **Best Practices** pages and a **/update-news** command (data-driven via `claude-news.json`).
+- Competitor scan: the "Claude Code usage tracker" space is saturated (ccusage, 8k-star monitor); the **project-management + memory** space is empty. Repositioned the whole pitch around the real wedge — **AI ideas-explosion → project sprawl → focus** ("Claude gave you an ideas explosion; Mission Control helps you finish them"), memory demoted to a supporting pillar.
+- Goal clarified: solve a real problem + build personal brand (not revenue, not the star-gated free-Max program — 5k stars by Jun 30 isn't realistic for a day-old repo). Chose plan **c**: organic, brand-first growth.
+- Captured the launch plan as todos: publish the story post (today), dogfood ~1 week, Show HN + r/ClaudeAI, then awesome-claude-code (Tooling › General, web-UI only — no gh, ≥1 week age) + plugin marketplace, plus an ongoing build-in-public cadence.
+- Next: publish the launch story post; let the repo age a week before the Show HN.
+
 ## 2026-06-04 — Auto-loaded digest + tiered tech knowledge
 
 - Shipped the auto-loaded context digest: `generate.py` builds a bounded, deterministic `knowledge/context.md` (status/next/todos + last 2–3 journal entries); wired `@knowledge/context.md` into all 8 projects' CLAUDE.md so sessions start informed and cache-warm. Created a minimal CLAUDE.md for Flywheel Creative OS (it had none).
