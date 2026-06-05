@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mission Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0F172A; --bg-2:#0B1220; --card:#1B2336; --card-2:#161E2F;
+    --muted:#272F42; --muted-fg:#94A3B8; --fg:#F8FAFC; --fg-dim:#CBD5E1;
+    --border:#2A3650; --border-strong:#3A496A;
+    --primary:#2563EB; --primary-fg:#FFFFFF; --secondary:#3B82F6;
+    --green:#22C55E; --amber:#F59E0B; --red:#EF4444; --slate:#64748B; --violet:#8B5CF6;
+    --radius:14px; --radius-sm:9px;
+    --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 8px 24px -12px rgba(0,0,0,.6);
+    --sans:'Fira Sans',system-ui,sans-serif; --mono:'Fira Code',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:radial-gradient(1200px 600px at 80% -10%,rgba(37,99,235,.10),transparent 60%),var(--bg);
+    color:var(--fg); font-family:var(--sans); font-size:15px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  .app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+
+  /* Sidebar */
+  .sidebar{
+    border-right:1px solid var(--border);background:var(--bg-2);
+    padding:22px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding:0 6px}
+  .brand .logo{
+    width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--primary),var(--violet));color:#fff;
+    box-shadow:0 0 18px rgba(37,99,235,.45);flex:none;
+  }
+  .brand .logo svg{width:17px;height:17px}
+  .brand .name{font-family:var(--mono);font-weight:600;letter-spacing:.2px;font-size:14px}
+  .brand .name small{display:block;color:var(--muted-fg);font-weight:400;font-size:11px;letter-spacing:.4px;text-transform:uppercase}
+  .nav-label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted-fg);margin:14px 8px 6px}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-sm);
+    color:var(--fg-dim);cursor:pointer;transition:background .15s ease,color .15s ease;font-size:14px;
+  }
+  .nav-item svg{width:16px;height:16px;opacity:.8;flex:none}
+  .nav-item:hover{background:var(--muted);color:var(--fg)}
+  .nav-item.active{background:rgba(37,99,235,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(37,99,235,.35)}
+  .nav-item .count{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--muted-fg)}
+  .sidebar .foot{margin-top:auto;font-size:11px;color:var(--muted-fg);padding:10px 8px;line-height:1.5}
+  .sidebar .foot code{font-family:var(--mono);color:var(--fg-dim)}
+
+  /* Main */
+  .main{padding:28px 34px 60px;max-width:1280px}
+  .head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:6px}
+  .greeting{font-size:13px;color:var(--muted-fg);font-family:var(--mono)}
+  h1{font-size:26px;margin:2px 0 0;font-weight:600;letter-spacing:-.2px}
+  .prompt{
+    margin-top:14px;margin-bottom:26px;background:linear-gradient(180deg,var(--card),var(--card-2));
+    border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;
+    align-items:center;gap:14px;box-shadow:var(--shadow);
+  }
+  .prompt .spark{width:34px;height:34px;border-radius:9px;background:rgba(34,197,94,.14);
+    display:grid;place-items:center;color:var(--green);flex:none}
+  .prompt .spark svg{width:18px;height:18px}
+  .prompt .q{font-size:15px}
+  .prompt .q b{font-weight:600}
+  .prompt .focus{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .chip{
+    font-family:var(--mono);font-size:12px;padding:5px 10px;border-radius:999px;
+    border:1px solid var(--border-strong);color:var(--fg-dim);background:var(--card-2);
+    display:inline-flex;align-items:center;gap:6px;transition:border-color .15s,transform .15s;cursor:pointer;
+  }
+  .chip:hover{border-color:var(--primary);transform:translateY(-1px)}
+  .chip .dot{width:7px;height:7px;border-radius:50%}
+
+  /* KPI cards */
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:22px}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:14px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .label{font-size:12px;color:var(--muted-fg);display:flex;align-items:center;gap:7px}
+  .kpi .label svg{width:14px;height:14px}
+  .kpi .val{font-family:var(--mono);font-size:27px;font-weight:600;margin-top:6px;letter-spacing:-.5px}
+  .kpi .val.accent{color:var(--green)}
+  .kpi .val.warn{color:var(--amber)}
+  .kpi .val.danger{color:var(--red)}
+  .kpi::after{content:"";position:absolute;inset:auto -30% -60% auto;width:120px;height:120px;
+    background:radial-gradient(circle,rgba(37,99,235,.12),transparent 70%)}
+
+  .grid2{display:grid;grid-template-columns:1.55fr 1fr;gap:20px;align-items:start}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .panel .ph{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--border)}
+  .panel .ph h2{font-size:14px;margin:0;font-weight:600;display:flex;align-items:center;gap:9px}
+  .panel .ph h2 svg{width:16px;height:16px;color:var(--muted-fg)}
+  .panel .ph .meta{font-family:var(--mono);font-size:12px;color:var(--muted-fg)}
+  .pb{padding:16px 18px}
+
+  /* Usage chart */
+  .chart-wrap{height:150px;position:relative}
+
+  /* Usage & spend */
+  .spend{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+  .spendcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+  .spendcard .sh{display:flex;align-items:center;gap:10px}
+  .spendcard .sh .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex:none}
+  .spendcard.claude .sh .ic{background:rgba(245,158,11,.14);color:#FBBF24}
+  .spendcard.higgs .sh .ic{background:rgba(139,92,246,.14);color:#A78BFA}
+  .spendcard .sh .ic svg{width:17px;height:17px}
+  .spendcard .sh .t{font-size:13px;font-weight:600}
+  .spendcard .sh .sub{font-size:11px;color:var(--muted-fg);font-family:var(--mono)}
+  .spendcard .big{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:-.5px;line-height:1}
+  .spendcard.claude .big{color:#FBBF24}
+  .spendcard.higgs .big{color:#A78BFA}
+  .spendcard .big small{font-size:14px;color:var(--muted-fg);font-weight:400;margin-left:4px}
+  .spendrow{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:auto}
+  .spendrow .sm{font-size:12px;color:var(--muted-fg);font-family:var(--mono)}
+  .spendrow .sm b{color:var(--fg-dim);font-weight:600}
+  .plan-badge{font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;
+    padding:3px 9px;border-radius:999px;background:rgba(139,92,246,.16);color:#C4B5FD;border:1px solid rgba(139,92,246,.32)}
+  .est-tag{font-family:var(--mono);font-size:10px;color:var(--muted-fg);border:1px solid var(--border);
+    padding:1px 6px;border-radius:5px;text-transform:uppercase;letter-spacing:.4px}
+
+  /* Section title */
+  .section-title{display:flex;align-items:center;justify-content:space-between;margin:26px 0 14px}
+  .section-title h2{font-size:15px;margin:0;font-weight:600}
+  .section-title .legend{display:flex;gap:14px;font-size:12px;color:var(--muted-fg);flex-wrap:wrap}
+  .section-title .legend span{display:inline-flex;align-items:center;gap:6px}
+  .section-title .legend .dot{width:8px;height:8px;border-radius:50%}
+
+  /* Project grid */
+  .projects{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+  .pcard{
+    background:linear-gradient(180deg,var(--card),var(--card-2));border:1px solid var(--border);
+    border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:11px;
+    transition:transform .16s ease,border-color .16s ease;position:relative;
+  }
+  .pcard:hover{transform:translateY(-3px);border-color:var(--border-strong)}
+  .pcard .accent-bar{position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0}
+  .pcard .ptop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .pcard h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.2px;padding-left:8px}
+  .pcard .stack{font-size:12px;color:var(--muted-fg);padding-left:8px;margin-top:2px;min-height:16px}
+  .status{font-family:var(--mono);font-size:11px;font-weight:600;padding:4px 9px;border-radius:999px;
+    display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+  .status .dot{width:7px;height:7px;border-radius:50%}
+  .s-active{background:rgba(34,197,94,.14);color:#4ADE80}
+  .s-active .dot{background:#22C55E;box-shadow:0 0 8px #22C55E}
+  .s-in-progress{background:rgba(37,99,235,.16);color:#60A5FA}
+  .s-in-progress .dot{background:#3B82F6}
+  .s-blocked{background:rgba(239,68,68,.14);color:#F87171}
+  .s-blocked .dot{background:#EF4444}
+  .s-idle{background:rgba(100,116,139,.16);color:#94A3B8}
+  .s-idle .dot{background:#64748B}
+  .s-archived{background:rgba(100,116,139,.10);color:#64748B}
+  .s-archived .dot{background:#475569}
+  .next{font-size:13px;color:var(--fg-dim);padding-left:8px;display:flex;gap:7px;align-items:flex-start;min-height:18px}
+  .next svg{width:14px;height:14px;color:var(--green);flex:none;margin-top:2px}
+  .next.empty{color:var(--muted-fg);font-style:italic}
+  .progress{padding-left:8px}
+  .progress .bar{height:6px;border-radius:6px;background:var(--muted);overflow:hidden}
+  .progress .bar > i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--green),#16A34A)}
+  .progress .lbl{font-size:11px;color:var(--muted-fg);font-family:var(--mono);margin-top:5px;display:flex;justify-content:space-between}
+  .pmeta{display:flex;gap:14px;padding-left:8px;border-top:1px solid var(--border);padding-top:11px;margin-top:2px;flex-wrap:wrap}
+  .pmeta .m{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted-fg);font-family:var(--mono)}
+  .pmeta .m svg{width:13px;height:13px;opacity:.75}
+  .gitrow{display:flex;gap:8px;padding-left:8px;flex-wrap:wrap;align-items:center}
+  .gitrow .g{font-family:var(--mono);font-size:11px;color:var(--muted-fg);display:inline-flex;align-items:center;gap:5px;
+    background:var(--card-2);border:1px solid var(--border);padding:2px 8px;border-radius:6px}
+  .gitrow .g .gi{display:inline-flex}.gitrow .g .gi svg{width:12px;height:12px}
+  .gitrow .g.dirty{color:#FBBF24;border-color:rgba(245,158,11,.35)}
+  .gitrow .g.clean{color:#4ADE80;border-color:rgba(34,197,94,.3)}
+  .gitrow .g.norepo{color:var(--slate);border-style:dashed}
+  .gitrow .g.norepo svg{width:12px;height:12px}
+  .skillrow{display:flex;gap:6px;padding-left:8px;flex-wrap:wrap;align-items:center}
+  .skillrow .sk{font-family:var(--mono);font-size:11px;color:#C4B5FD;display:inline-flex;align-items:center;gap:5px;
+    background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.28);padding:2px 8px;border-radius:6px}
+  .skillrow .sk svg{width:12px;height:12px}
+  .tags{display:flex;gap:6px;padding-left:8px;flex-wrap:wrap}
+  .tag{font-size:11px;font-family:var(--mono);color:var(--muted-fg);background:var(--muted);
+    padding:2px 8px;border-radius:6px}
+  .techrow{display:flex;gap:6px;padding-left:8px;flex-wrap:wrap;align-items:center}
+  .techrow .tlabel{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-family:var(--mono);
+    text-transform:uppercase;letter-spacing:.5px;color:var(--muted-fg)}
+  .techrow .tlabel svg{width:12px;height:12px}
+  .tch{font-size:11px;font-family:var(--mono);color:#7DD3FC;background:rgba(14,165,233,.1);
+    border:1px solid rgba(14,165,233,.28);padding:2px 8px;border-radius:6px}
+  .tch.more{color:var(--muted-fg);background:transparent;border-color:var(--border)}
+  .pcard .ccost{margin-left:auto;font-family:var(--mono);font-size:11px;color:#FBBF24;
+    display:inline-flex;align-items:center;gap:5px}
+  .pcard .ccost svg{width:12px;height:12px}
+
+  /* Update help */
+  .update-help .ph h2 code{font-family:var(--mono);font-size:13px;color:#22C55E;background:rgba(34,197,94,.12);
+    border:1px solid rgba(34,197,94,.28);padding:1px 7px;border-radius:6px}
+  .update-help code{font-family:var(--mono);font-size:12.5px;color:#C4B5FD;background:var(--card-2);
+    border:1px solid var(--border);padding:1px 5px;border-radius:5px}
+  .uh-lead{margin:0 0 14px;color:var(--fg);font-size:14px;line-height:1.6}
+  .uh-steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:9px}
+  .uh-steps li{font-size:13.5px;line-height:1.55;color:var(--muted-fg)}
+  .uh-steps li b{color:var(--fg);font-weight:600}
+  .uh-rule{margin:16px 0 0;padding-top:14px;border-top:1px solid var(--border);
+    font-size:13px;color:var(--muted-fg);font-style:italic}
+
+  /* Resources */
+  .res-list{display:flex;flex-direction:column}
+  .res{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)}
+  .res:last-child{border-bottom:none}
+  .res .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex:none;
+    background:rgba(139,92,246,.14);color:#A78BFA}
+  .res.agent .ic{background:rgba(245,158,11,.14);color:#FBBF24}
+  .res.mcp .ic{background:rgba(34,197,94,.14);color:#4ADE80}
+  .res .ic svg{width:16px;height:16px}
+  .mcp-status{margin-left:auto;font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:6px;
+    flex:none;text-transform:uppercase;letter-spacing:.3px;border:1px solid var(--border)}
+  .mcp-status.on{color:#4ADE80;background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3)}
+  .mcp-status.off{color:#FBBF24;background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.32)}
+  .mcp-scope{font-size:9px;font-family:var(--mono);color:var(--muted-fg);background:rgba(148,163,184,.1);
+    border:1px solid var(--border);border-radius:5px;padding:1px 5px;vertical-align:middle;text-transform:uppercase;letter-spacing:.3px}
+  .mcp-meta{margin-top:3px}
+  .mcp-acct{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-family:var(--mono);color:#A78BFA}
+  .mcp-acct svg{width:12px;height:12px}
+  .res .rt{font-weight:600;font-size:14px;font-family:var(--mono)}
+  .res .rd{font-size:12px;color:var(--muted-fg);line-height:1.45;margin-top:1px}
+  .res .scope{margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--muted-fg);
+    border:1px solid var(--border);padding:2px 7px;border-radius:6px;text-transform:uppercase;flex:none}
+  .empty{padding:26px 10px;text-align:center;color:var(--muted-fg);font-size:13px}
+  .empty svg{width:26px;height:26px;opacity:.5;display:block;margin:0 auto 8px}
+
+  @media (max-width:1100px){
+    .kpis{grid-template-columns:repeat(3,1fr)}
+    .grid2{grid-template-columns:1fr}
+  }
+  @media (max-width:760px){
+    .app{grid-template-columns:1fr}
+    .sidebar{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px}
+    .sidebar .nav-label,.sidebar .foot{display:none}
+    .nav-item{flex:1;justify-content:center}
+    .main{padding:20px 16px 48px}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .prompt .focus{width:100%;justify-content:flex-start}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/></svg></span>
+      <span class="name">Mission Control<small>Command Center</small></span>
+    </div>
+    <div class="nav-label">Workspace</div>
+    <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Overview</div>
+    <div class="nav-item" id="nav-projects"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/></svg> Projects <span class="count" id="c-projects"></span></div>
+    <div class="nav-item" id="nav-skills"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg> Skills <span class="count" id="c-skills"></span></div>
+    <div class="nav-item" id="nav-agents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 2v6M8 14h.01M16 14h.01"/></svg> Agents <span class="count" id="c-agents"></span></div>
+    <div class="nav-item" id="nav-mcps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6M7 8h10v3a5 5 0 0 1-10 0zM12 16v6"/></svg> MCPs <span class="count" id="c-mcps"></span></div>
+    <div class="nav-item" id="nav-update"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> /update</div>
+    <a class="nav-item" href="news.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a2 2 0 0 1 2-2h10l4 4v16M4 22h16M8 7h6M8 11h8M8 15h8"/></svg> Claude news</a>
+    <a class="nav-item" href="best-practices.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 5.4L20 8.2l-4 4 1 5.8-5-2.8-5 2.8 1-5.8-4-4 5.6-.8z"/></svg> Best practices</a>
+    <a class="nav-item" href="guide.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> How it works</a>
+    <div class="foot">
+      Generated <code id="gen"></code><br>Refresh with <code>python3 generate.py</code>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="head">
+      <div>
+        <div class="greeting" id="greeting"></div>
+        <h1>Today at a glance</h1>
+      </div>
+    </div>
+
+    <div class="prompt">
+      <span class="spark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v4M3 5h4M6 17v4M4 19h4M13 3l2.5 6.5L22 12l-6.5 2.5L13 21l-2.5-6.5L4 12l6.5-2.5L13 3z"/></svg></span>
+      <div class="q"><b>What do you want to work on today?</b> &nbsp;<span style="color:var(--muted-fg)">Your active focus:</span></div>
+      <div class="focus" id="focus"></div>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="spend" id="spend"></div>
+
+    <section class="panel" style="margin-bottom:22px">
+      <div class="ph"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg> Activity</h2>
+        <span class="meta"><span style="color:#3B82F6">●</span> sessions &nbsp; <span style="color:#22C55E">●</span> commits &nbsp; · 30d</span></div>
+      <div class="pb"><div class="chart-wrap"><canvas id="usage"></canvas></div></div>
+    </section>
+
+    <div class="section-title" id="projects-anchor">
+      <h2>Projects</h2>
+      <div class="legend">
+        <span><i class="dot" style="background:#22C55E"></i>Active</span>
+        <span><i class="dot" style="background:#3B82F6"></i>In progress</span>
+        <span><i class="dot" style="background:#EF4444"></i>Blocked</span>
+        <span><i class="dot" style="background:#64748B"></i>Idle</span>
+      </div>
+    </div>
+    <div class="projects" id="projects"></div>
+
+    <div class="section-title" id="skills-anchor" style="margin-top:30px"><h2>Shared skills</h2><span class="meta" id="skills-meta" style="font-family:var(--mono);font-size:12px;color:var(--muted-fg)"></span></div>
+    <section class="panel" id="skills-panel"><div class="pb"><div class="res-list" id="skills"></div></div></section>
+
+    <div class="section-title" id="agents-anchor" style="margin-top:30px"><h2>Shared agents</h2></div>
+    <section class="panel"><div class="pb"><div class="res-list" id="agents"></div></div></section>
+
+    <div class="section-title" id="mcps-anchor" style="margin-top:30px"><h2>Connected MCPs</h2><span class="meta" id="mcps-meta" style="font-family:var(--mono);font-size:12px;color:var(--muted-fg)"></span></div>
+    <section class="panel"><div class="pb"><div class="res-list" id="mcps"></div></div></section>
+
+    <div class="section-title" id="update-anchor" style="margin-top:30px"><h2>Keep it current</h2></div>
+    <section class="panel update-help">
+      <div class="ph"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> Run <code>/update</code> at the end of a session</h2></div>
+      <div class="pb">
+        <p class="uh-lead">Type <code>/update</code> (or <code>/update &lt;project&gt;</code>) in any project session. It refreshes that project's <code>mission-control.md</code> note so tomorrow's dashboard is already current.</p>
+        <ol class="uh-steps">
+          <li><b>Target</b> — defaults to the project you worked on this session.</li>
+          <li><b>Note</b> — opens/creates <code>~/Startups/&lt;project&gt;/mission-control.md</code>.</li>
+          <li><b>Frontmatter</b> — bumps <code>status</code>, sets the single most important <code>next</code>, checks off <code>milestones</code>, prunes &amp; adds <code>todos</code>, refreshes the summary.</li>
+          <li><b>Regenerate</b> — runs <code>python3 generate.py</code> so <code>data.js</code> reflects the change.</li>
+          <li><b>Confirm</b> — prints a one-line diff of what changed.</li>
+        </ol>
+        <p class="uh-rule">Only the project you actually worked on is edited, and nothing is invented — only what genuinely happened gets recorded.</p>
+      </div>
+    </section>
+
+    <section class="panel update-help" style="margin-top:14px">
+      <div class="ph"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Run <code>/update-arch</code> when the architecture changed</h2></div>
+      <div class="pb">
+        <p class="uh-lead">Technical knowledge is <b>not</b> touched by <code>/update</code> (which only does status). Run <code>/update-arch</code> (or <code>/update-arch &lt;project&gt;</code>) when the system's real shape or workings changed. It keeps <b>three tiers</b> current:</p>
+        <ol class="uh-steps">
+          <li><b>Diagram</b> — <code>tech-architecture.json</code> (<code>tiers</code> → boxes, <code>nodes</code> with a <code>kind</code>, <code>edges</code> with a <code>flow</code>), rendered live with Cytoscape.</li>
+          <li><b>Always-on brief</b> — the <b>Architecture</b> section in the project's own <code>CLAUDE.md</code> (stack, key paths, data flow, commands, gotchas). Loaded every session, so kept tight. Bootstrap with <code>/init</code>.</li>
+          <li><b>On-demand spec</b> — <code>knowledge/architecture.md</code> (module map, schema, flows). Featured in full on the project page; Claude reads it only when needed.</li>
+          <li><b>Regenerate</b> — runs <code>python3 generate.py</code>; confirms which tiers changed.</li>
+        </ol>
+        <p class="uh-rule">Altitude rule: document <b>shape, why &amp; where</b> — never line-level behavior. The code is the source of truth; over-detailed docs rot. Author tech docs only for projects with real code.</p>
+      </div>
+    </section>
+
+    <section class="panel update-help" style="margin-top:14px">
+      <div class="ph"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.9 4.9l2.8 2.8"/><path d="M16.3 16.3l2.8 2.8"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.9 19.1l2.8-2.8"/><path d="M16.3 7.7l2.8-2.8"/></svg> Run <code>/update-usage</code> to refresh spend</h2></div>
+      <div class="pb">
+        <p class="uh-lead"><b>Claude Code spend is automatic.</b> Every <code>python3 generate.py</code> re-reads the session logs, so token counts are exact as of the last run. The dollar figure is an <b>estimate</b> (Claude logs tokens, not cost), always labelled <code>est.</code></p>
+        <p class="uh-lead"><b>Higgsfield needs a refresh</b> — <code>generate.py</code> is stdlib-only and can't call MCP. In a session with the Higgsfield MCP connected, run <code>/update-usage</code>:</p>
+        <ol class="uh-steps">
+          <li>Calls the Higgsfield MCP <code>balance</code> tool → rewrites <code>higgsfield-usage.json</code> (<code>credits</code>, <code>plan</code>, today as <code>asOf</code>).</li>
+          <li>Calls the Higgsfield MCP <code>transactions</code> tool (pages with the cursor until exhausted) → rewrites <code>higgsfield-transactions.json</code> with the full list + current <code>balance</code>.</li>
+          <li>Re-runs <code>python3 generate.py</code> and confirms balance / # transactions / used today·7d·30d.</li>
+        </ol>
+        <p class="uh-rule">Renewal dates are derived automatically — Claude from your Stripe subscription anchor, Higgsfield from the latest subscription-credit grant. A natural cadence is to run <code>/update-usage</code> whenever you open Mission Control.</p>
+      </div>
+    </section>
+
+    <section class="panel update-help" style="margin-top:14px">
+      <div class="ph"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a2 2 0 0 1 2-2h10l4 4v16M4 22h16M8 7h6M8 11h8M8 15h8"/></svg> Run <code>/update-news</code> to refresh the news feed</h2></div>
+      <div class="pb">
+        <p class="uh-lead">The <a href="news.html">Claude News</a> page is a curated snapshot, not a live feed — <code>generate.py</code> can't fetch the web. Run <code>/update-news</code> to refresh it in one step:</p>
+        <ol class="uh-steps">
+          <li>Searches the web for the latest Anthropic / Claude <b>releases</b>, <b>events</b>, and <b>tutorials</b>.</li>
+          <li>Rewrites <code>claude-news.json</code> (releases, events, tutorials, sources + today's <code>updatedAt</code>) — only real, sourced items.</li>
+          <li>Re-runs <code>python3 generate.py</code> and confirms the counts + next upcoming event.</li>
+        </ol>
+        <p class="uh-rule">The "Official sources" links on the news page always point to live info, so even a stale feed stays useful between refreshes.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="data.js"></script>
+<script>
+const D = window.MISSION_CONTROL || {totals:{},usage:[],projects:[],skills:[],agents:[]};
+const $ = s => document.querySelector(s);
+const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const STATUS_LABEL={active:'Active','in-progress':'In progress',blocked:'Blocked',idle:'Idle',archived:'Archived'};
+const STATUS_COLOR={active:'#22C55E','in-progress':'#3B82F6',blocked:'#EF4444',idle:'#64748B',archived:'#475569'};
+const ICON={
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 7"/></svg>',
+  folder:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H3z"/></svg>',
+  active:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  todo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>',
+  sess:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17l6-6-6-6M12 19h8"/></svg>',
+  skill:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>',
+  agent:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 2v6M8 14h.01M16 14h.01"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  git:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5v7M18 11.5c0 3-3 3.5-6 3.5"/></svg>',
+  branch:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5v7M18 11.5c0 3-3 3.5-6 3.5"/></svg>',
+  dot6:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>',
+  mcp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg>',
+  plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6M7 8h10v3a5 5 0 0 1-10 0zM12 16v6"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  layers:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
+  film:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16M16 4v16"/></svg>',
+};
+const fmtTok=n=>{n=n||0;if(n>=1e9)return (n/1e9).toFixed(2)+'B';if(n>=1e6)return (n/1e6).toFixed(1)+'M';if(n>=1e3)return (n/1e3).toFixed(1)+'K';return ''+n;};
+const fmtUSD=n=>'$'+(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtRenew=iso=>{if(!iso)return '';const d=new Date(iso+'T00:00:00');const lbl=d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  const days=Math.round((d-new Date(new Date().toDateString()))/864e5);
+  return `renews <b>${lbl}</b>${days>=0?` · ${days===0?'today':'in '+days+'d'}`:''}`;};
+
+// greeting
+const h=new Date().getHours();
+$('#greeting').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+' · '+new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+$('#gen').textContent=D.generatedAt||'—';
+$('#c-projects').textContent=D.totals.projects||0;
+$('#c-skills').textContent=D.totals.skills||0;
+$('#c-agents').textContent=D.totals.agents||0;
+$('#c-mcps').textContent=D.totals.mcps||0;
+$('#nav-projects').onclick=()=>$('#projects-anchor').scrollIntoView({behavior:'smooth'});
+$('#nav-skills').onclick=()=>$('#skills-panel').scrollIntoView({behavior:'smooth'});
+$('#nav-agents').onclick=()=>$('#agents-anchor').scrollIntoView({behavior:'smooth'});
+$('#nav-mcps').onclick=()=>$('#mcps-anchor').scrollIntoView({behavior:'smooth'});
+$('#nav-update').onclick=()=>$('#update-anchor').scrollIntoView({behavior:'smooth'});
+
+// KPIs
+const T=D.totals;
+const kpis=[
+  {label:'Projects',val:T.projects,icon:ICON.folder},
+  {label:'Active',val:T.active,cls:'accent',icon:ICON.active},
+  {label:'Open todos',val:T.openTodos,cls:T.openTodos?'warn':'',icon:ICON.todo},
+  {label:'Sessions',val:T.sessions,icon:ICON.sess},
+  {label:'Git repos',val:T.repos,icon:ICON.git},
+  {label:'Skills',val:T.skills,icon:ICON.skill},
+];
+const kc=$('#kpis');
+kpis.forEach(k=>{
+  kc.appendChild(el('div','kpi',
+    `<div class="label">${k.icon}${k.label}</div><div class="val ${k.cls||''}">${k.val}</div>`));
+});
+
+// focus chips
+const fc=$('#focus');
+const activeP=D.projects.filter(p=>p.status==='active'||p.status==='in-progress').slice(0,3);
+if(activeP.length){
+  activeP.forEach(p=>{
+    const c=el('a','chip',`<span class="dot" style="background:${STATUS_COLOR[p.status]}"></span>${p.name}`);
+    c.href='project.html?id='+encodeURIComponent(p.id);
+    fc.appendChild(c);
+  });
+}else{fc.appendChild(el('span','chip','Nothing active — pick a project'));}
+
+// projects
+const pc=$('#projects');
+D.projects.forEach(p=>{
+  const ms=p.milestones||[]; const done=ms.filter(m=>m.done).length;
+  const pct=ms.length?Math.round(done/ms.length*100):0;
+  const card=el('a','pcard');
+  card.href='project.html?id='+encodeURIComponent(p.id);
+  card.innerHTML=`
+    <span class="accent-bar" style="background:${STATUS_COLOR[p.status]}"></span>
+    <div class="ptop">
+      <div><h3>${p.name}</h3><div class="stack">${p.stack||'&nbsp;'}</div></div>
+      <span class="status s-${p.status}"><span class="dot"></span>${STATUS_LABEL[p.status]||p.status}</span>
+    </div>
+    <div class="next ${p.next?'':'empty'}">${p.next?ICON.arrow+'<span>'+p.next+'</span>':'No next action set'}</div>
+    ${(p.techStack&&p.techStack.length)?`<div class="techrow"><span class="tlabel">${ICON.layers} stack</span>${p.techStack.slice(0,5).map(t=>`<span class="tch">${t.replace(/</g,'&lt;')}</span>`).join('')}${p.techStack.length>5?`<span class="tch more">+${p.techStack.length-5}</span>`:''}</div>`:''}
+    ${ms.length?`<div class="progress"><div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="lbl"><span>Milestones</span><span>${done}/${ms.length} · ${pct}%</span></div></div>`:''}
+    <div class="pmeta">
+      <span class="m">${ICON.sess}${p.sessions} sess</span>
+      <span class="m">${ICON.todo}${(p.todos||[]).length} todos</span>
+      ${(p.skills&&p.skills.length)?`<span class="m">${ICON.skill}${p.skills.length} skills</span>`:''}
+      <span class="m">${ICON.cal}${p.lastActive||'—'}</span>
+      ${p.claude?`<span class="ccost" title="Estimated Claude Code spend">${ICON.spark}${fmtUSD(p.claude.cost)} est.</span>`:''}
+    </div>
+    ${(p.skills&&p.skills.length)?`<div class="skillrow">${p.skills.map(s=>`<span class="sk">${ICON.skill}${s.name}</span>`).join('')}</div>`:''}
+    ${p.git?`<div class="gitrow">
+      <span class="g"><span class="gi">${ICON.branch}</span>${p.git.branch||'detached'}</span>
+      ${p.git.dirty?`<span class="g dirty">${p.git.dirty} uncommitted</span>`:`<span class="g clean">clean</span>`}
+      ${typeof p.git.behind==='number'&&(p.git.ahead||p.git.behind)?`<span class="g">↑${p.git.ahead} ↓${p.git.behind}</span>`:''}
+      ${p.git.commits30d?`<span class="g">${p.git.commits30d} commits/30d</span>`:''}
+    </div>`:`<div class="gitrow"><span class="g norepo">${ICON.git} not a git repo yet</span></div>`}
+    ${(p.tags&&p.tags.length)?`<div class="tags">${p.tags.map(t=>`<span class="tag">#${t}</span>`).join('')}</div>`:''}
+  `;
+  pc.appendChild(card);
+});
+
+// skills
+const sc=$('#skills'); $('#skills-meta').textContent=(D.skills.length)+' available';
+if(D.skills.length){
+  D.skills.forEach(s=>{
+    sc.appendChild(el('div','res',
+      `<span class="ic">${ICON.skill}</span><div><div class="rt">${s.name}</div>
+       <div class="rd">${s.description||'No description'}</div></div>
+       <span class="scope">${s.scope}</span>`));
+  });
+}else{sc.appendChild(el('div','empty',ICON.skill+'No shared skills found'));}
+
+// agents
+const ac=$('#agents');
+if(D.agents.length){
+  D.agents.forEach(a=>{
+    ac.appendChild(el('div','res agent',
+      `<span class="ic">${ICON.agent}</span><div><div class="rt">${a.name}</div>
+       <div class="rd">${a.description||'No description'}</div></div>
+       <span class="scope">${a.scope}</span>`));
+  });
+}else{
+  ac.appendChild(el('div','empty',ICON.agent+'No global agents yet — add markdown files to <code>~/.claude/agents/</code>'));
+}
+
+// MCPs
+const mc=$('#mcps'),mcps=D.mcps||[];
+const mcOn=mcps.filter(m=>m.connected).length;
+$('#mcps-meta').textContent=mcps.length?`${mcOn}/${mcps.length} connected`:'';
+if(mcps.length){
+  mcps.forEach(m=>{
+    const acct=m.account?`<span class="mcp-acct" title="Claude account these connectors are authorized under">${ICON.user} ${m.account}</span>`:'';
+    mc.appendChild(el('div','res mcp',
+      `<span class="ic">${ICON.plug}</span><div><div class="rt">${m.name} ${m.scope==='claude.ai'?'<span class="mcp-scope">claude.ai</span>':''}</div>
+       <div class="rd">${(m.url||'').replace(/</g,'&lt;')}</div>
+       ${acct?`<div class="mcp-meta">${acct}</div>`:''}</div>
+       <span class="mcp-status ${m.connected?'on':'off'}">${m.connected?'●':'○'} ${m.status}</span>`));
+  });
+}else{
+  mc.appendChild(el('div','empty',ICON.plug+'No MCP servers connected — add one with <code>claude mcp add</code>'));
+}
+
+// usage & spend
+const sp=$('#spend');
+const cu=(D.claude&&D.claude.total)||{};
+const hf=D.higgsfield;
+const claudeCard=el('div','spendcard claude',`
+  <div class="sh"><span class="ic">${ICON.spark}</span>
+    <div><div class="t">Claude Code usage</div><div class="sub">${(cu.messages||0).toLocaleString()} msgs · ${D.projects.length} projects</div></div>
+    <span class="est-tag" style="margin-left:auto" title="Estimated from logged token counts × public model pricing">est.</span></div>
+  <div class="big">${fmtUSD(cu.cost)}</div>
+  <div class="spendrow">
+    <span class="sm"><b>${fmtTok(cu.tokens)}</b> tokens</span>
+    <span class="sm">in <b>${fmtTok(cu.input)}</b></span>
+    <span class="sm">out <b>${fmtTok(cu.output)}</b></span>
+    <span class="sm">cache <b>${fmtTok((cu.cacheRead||0)+(cu.cacheWrite||0))}</b></span>
+    ${D.claude&&D.claude.renewsOn?`<span class="sm">${fmtRenew(D.claude.renewsOn)}</span>`:''}
+  </div>`);
+sp.appendChild(claudeCard);
+const hasHfDaily=hf&&Array.isArray(hf.daily);
+const higgsCard=el('div','spendcard higgs',`
+  <div class="sh"><span class="ic">${ICON.film}</span>
+    <div><div class="t">Higgsfield</div><div class="sub">credits remaining${hf&&hf.asOf?' · as of '+hf.asOf:''}</div></div>
+    ${hf&&hf.plan?`<span class="plan-badge" style="margin-left:auto">${hf.plan}</span>`:''}</div>
+  <div class="big">${hf?Number(hf.credits||0).toLocaleString():'—'}<small>${hf?'remaining':''}</small></div>
+  <div class="spendrow">
+    ${hasHfDaily?`<span class="sm">used today <b>${Number(hf.spentToday||0).toLocaleString()}</b></span>
+      <span class="sm">7d <b>${Number(hf.spent7d||0).toLocaleString()}</b></span>
+      <span class="sm">30d <b>${Number(hf.spent30d||0).toLocaleString()}</b></span>
+      <span class="sm">this month <b>${Number(hf.spentMonth||0).toLocaleString()}</b></span>
+      ${hf.renewsOn?`<span class="sm">${fmtRenew(hf.renewsOn)}</span>`:''}`
+      :hf?`<span class="sm">Refresh via the Higgsfield MCP <b>balance</b> tool → <b>higgsfield-usage.json</b></span>`
+        :`<span class="sm">No <b>higgsfield-usage.json</b> yet — add credits snapshot to show balance</span>`}
+  </div>`);
+sp.appendChild(higgsCard);
+
+// usage chart
+const u=D.usage||[];
+const ctx=$('#usage');
+if(ctx&&window.Chart){
+  const g=ctx.getContext('2d').createLinearGradient(0,0,0,150);
+  g.addColorStop(0,'rgba(37,99,235,.30)');g.addColorStop(1,'rgba(37,99,235,0)');
+  const gg=ctx.getContext('2d').createLinearGradient(0,0,0,150);
+  gg.addColorStop(0,'rgba(34,197,94,.22)');gg.addColorStop(1,'rgba(34,197,94,0)');
+  new Chart(ctx,{
+    type:'line',
+    data:{labels:u.map(d=>d.date.slice(5)),datasets:[
+      {label:'Sessions',data:u.map(d=>d.sessions),borderColor:'#3B82F6',backgroundColor:g,fill:true,
+        tension:.35,borderWidth:2,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:'#3B82F6'},
+      {label:'Commits',data:u.map(d=>d.commits),borderColor:'#22C55E',backgroundColor:gg,fill:true,
+        tension:.35,borderWidth:2,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:'#22C55E'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{
+        backgroundColor:'#0B1220',borderColor:'#2A3650',borderWidth:1,titleColor:'#94A3B8',
+        bodyColor:'#F8FAFC',bodyFont:{family:'Fira Code'},callbacks:{label:c=>c.dataset.label+': '+c.parsed.y}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#64748B',font:{family:'Fira Code',size:10},maxTicksLimit:8}},
+        y:{beginAtZero:true,grid:{color:'rgba(42,54,80,.6)'},ticks:{color:'#64748B',font:{family:'Fira Code',size:10},precision:0,maxTicksLimit:4}}
+      }}
+  });
+}
+</script>
+</body>
+</html>

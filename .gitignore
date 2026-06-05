@@ -1,0 +1,22 @@
+# Generated snapshot — rebuilt by generate.py, and contains your personal
+# project data (paths, todos, usage). Never commit it.
+data.js
+
+# Per-project generated digest (auto-loaded into sessions).
+knowledge/context.md
+
+# Personal usage data — your real Higgsfield balances / history.
+higgsfield-usage.json
+higgsfield-transactions.json
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Local tooling state (gstack browse QA artifacts)
+.gstack/
+
+# OS / editor noise
+.DS_Store
+.obsidian/
+*.swp

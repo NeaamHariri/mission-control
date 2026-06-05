@@ -1,0 +1,28 @@
+{
+  "title": "Mission Control",
+  "tiers": [
+    { "id": "sources", "label": "01 · Sources" },
+    { "id": "scan", "label": "02 · Scan" },
+    { "id": "snapshot", "label": "03 · Snapshot" },
+    { "id": "view", "label": "04 · Dashboards" }
+  ],
+  "nodes": [
+    { "id": "notes", "label": "Startups Notes", "tier": "sources", "kind": "external" },
+    { "id": "sessions", "label": "Claude Sessions", "tier": "sources", "kind": "external" },
+    { "id": "git", "label": "Git", "tier": "sources", "kind": "external" },
+    { "id": "mcplist", "label": "claude mcp list", "tier": "sources", "kind": "external" },
+    { "id": "scanner", "label": "generate.py", "tier": "scan", "kind": "core" },
+    { "id": "datajs", "label": "data.js", "tier": "snapshot", "kind": "store" },
+    { "id": "index", "label": "index.html", "tier": "view", "kind": "client" },
+    { "id": "project", "label": "project.html", "tier": "view", "kind": "client" }
+  ],
+  "edges": [
+    { "source": "notes", "target": "scanner", "flow": "read" },
+    { "source": "sessions", "target": "scanner", "flow": "read" },
+    { "source": "git", "target": "scanner", "flow": "read" },
+    { "source": "mcplist", "target": "scanner", "flow": "read" },
+    { "source": "scanner", "target": "datajs", "label": "writes", "flow": "write" },
+    { "source": "datajs", "target": "index", "flow": "read" },
+    { "source": "datajs", "target": "project", "flow": "read" }
+  ]
+}

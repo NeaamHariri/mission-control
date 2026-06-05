@@ -1,0 +1,106 @@
+{
+  "updatedAt": "2026-06-05",
+  "releases": [
+    {
+      "date": "2026-05-28",
+      "title": "Claude Opus 4.8",
+      "tag": "Model",
+      "url": "https://www.anthropic.com/news/claude-opus-4-8",
+      "summary": "Upgrade to Opus 4.7 with gains across benchmarks, at the same price. Fast mode runs ~2.5× faster and 3× cheaper; only model to complete every Super-Agent case end-to-end; strongest computer-use / browser-agent model (84% on Online-Mind2Web). Adds effort control on claude.ai and 'dynamic workflows' in Claude Code (plan, then run hundreds of parallel subagents in one session)."
+    },
+    {
+      "date": "2026-05-28",
+      "title": "Claude Security",
+      "tag": "Product",
+      "url": "https://www.anthropic.com/news",
+      "summary": "A security product that uses frontier models (Opus 4.8) to scan codebases and suggest patches."
+    },
+    {
+      "date": "2026-02-17",
+      "title": "Claude Sonnet 4.6",
+      "tag": "Model",
+      "url": "https://www.anthropic.com/news/claude-sonnet-4-6",
+      "summary": "The most capable Sonnet yet — full upgrade across coding, computer use, long-context reasoning, agent planning, knowledge work, and design."
+    },
+    {
+      "date": "2026-01-01",
+      "title": "Claude Opus 4.7",
+      "tag": "Model",
+      "url": "https://www.anthropic.com/news/claude-opus-4-7",
+      "summary": "A notable improvement on Opus 4.6 in advanced software engineering, with particular gains on the hardest tasks."
+    },
+    {
+      "date": "2026-03-01",
+      "title": "Claude Design (Anthropic Labs)",
+      "tag": "Product",
+      "url": "https://www.anthropic.com/news",
+      "summary": "Collaborate with Claude to create polished visual work — designs, prototypes, slides, one-pagers, and more."
+    }
+  ],
+  "events": [
+    {
+      "date": "2026-06-10",
+      "name": "Code with Claude — Tokyo",
+      "location": "Tokyo · in-person + livestream",
+      "url": "https://claude.com/code-with-claude",
+      "note": "Anthropic's developer conference. Free in-person (lottery) and free livestream. Hands-on workshops, live demos, and the teams behind Claude."
+    },
+    {
+      "date": "2026-05-19",
+      "name": "Code with Claude — London",
+      "location": "London · in-person + livestream",
+      "url": "https://claude.com/code-with-claude",
+      "note": "Free, full-day technical event for developers building agentic systems. Livestreamed."
+    },
+    {
+      "date": "2026-05-06",
+      "name": "Code with Claude — San Francisco",
+      "location": "San Francisco · in-person + livestream",
+      "url": "https://claude.com/code-with-claude",
+      "note": "The flagship Code with Claude. Free, livestreamed."
+    },
+    {
+      "date": "2026-04-22",
+      "name": "Anthropic at Google Cloud Next 2026",
+      "location": "Livestream",
+      "url": "https://www.anthropic.com/events/anthropic-at-google-cloud-next-2026",
+      "note": "Anthropic sessions at Google Cloud Next, with a scheduled livestream."
+    }
+  ],
+  "tutorials": [
+    {
+      "title": "Anthropic Academy",
+      "tag": "Free courses + certificates",
+      "url": "https://anthropic.skilljar.com/",
+      "summary": "Launched March 2026. 17 free certified, self-paced courses across three tracks — AI Fluency (non-technical), Product Training (Claude users), and Developer Deep-Dives (API/MCP/Claude Code). Email to enroll, certificate on completion, no card, no upsell."
+    },
+    {
+      "title": "Building with the Claude API",
+      "tag": "Course",
+      "url": "https://anthropic.skilljar.com/",
+      "summary": "The largest course on the platform: 84 lessons, 8+ hours of video, 10 quizzes — everything to integrate Claude into production apps."
+    },
+    {
+      "title": "Introduction to Model Context Protocol",
+      "tag": "Course",
+      "url": "https://anthropic.skilljar.com/",
+      "summary": "Build MCP servers and clients from scratch in Python."
+    },
+    {
+      "title": "Tutorials hub (video + written)",
+      "tag": "Guides",
+      "url": "https://claude.com/resources/tutorials",
+      "summary": "Video and written guides — Claude Code remote control, Cowork plugin development, model selection, and more."
+    }
+  ],
+  "sources": [
+    { "label": "Anthropic Newsroom", "url": "https://www.anthropic.com/news" },
+    { "label": "Events calendar", "url": "https://www.anthropic.com/events" },
+    { "label": "Learn / resources", "url": "https://www.anthropic.com/learn" },
+    { "label": "Anthropic Academy", "url": "https://anthropic.skilljar.com/" },
+    { "label": "Code with Claude", "url": "https://claude.com/code-with-claude" },
+    { "label": "Claude Code docs", "url": "https://docs.claude.com/en/docs/claude-code/overview" },
+    { "label": "Anthropic Cookbook", "url": "https://github.com/anthropics/anthropic-cookbook" },
+    { "label": "Status", "url": "https://status.anthropic.com" }
+  ]
+}
