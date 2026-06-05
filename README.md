@@ -8,6 +8,15 @@
 
 Claude Code is sharp inside a session and forgets everything the moment it ends. And once you're juggling more than one project, it's hard to remember what's where, what's blocked, and what's next. **Mission Control fixes both** — locally, with no server, no build step, and nothing to `pip install`. A small Python script reads your project folders, your Claude sessions, and git; a fast, dark dashboard shows you the whole picture.
 
+**Highlights**
+
+- 🗂️ **Every project on one screen** — status, next action, milestones, todos, activity, and spend
+- 🧠 **Persistent memory** — Claude starts each session already knowing your project
+- 📓 **Session journal** — history accumulates automatically, written with one `/update`
+- 🏗️ **Living architecture docs** — an interactive diagram and tech spec per project
+- 💸 **Usage & spend** — estimated Claude cost plus optional Higgsfield credits
+- 🔒 **Local & private** — no server, no build, just plain markdown you own
+
 ---
 
 ## ✦ Manage your whole portfolio at a glance
