@@ -15,6 +15,7 @@ Claude Code is sharp inside a session and forgets everything the moment it ends.
 - 📓 **Session journal** — history accumulates automatically, written with one `/update`
 - 🏗️ **Living architecture docs** — an interactive diagram and tech spec per project
 - 💸 **Usage & spend** — estimated Claude cost plus optional Higgsfield credits
+- 📰 **Stay current** — a built-in Claude news feed, events calendar, tutorials, and a skills cheat-sheet
 - 🔒 **Local & private** — no server, no build, just plain markdown you own
 
 ---
@@ -42,6 +43,17 @@ This is the part Claude Code is missing. Mission Control gives each project a **
 - **Plain markdown, yours forever** — it's just files in a `knowledge/` folder. Commit it, diff it, or open the whole thing as an [Obsidian](https://obsidian.md) vault. No lock-in.
 
 The result: close a session without fear. Your memory now lives in the repo, so tomorrow's session, or a teammate's, starts informed.
+
+## ✦ Stay sharp on Claude Code itself
+
+Mission Control ships with built-in reference pages, so the latest from Anthropic and the habits that make you faster are always one click away in the dashboard sidebar.
+
+- **📰 Claude News** — a curated feed of the newest Claude model and product releases, an events calendar (Anthropic's *Code with Claude* and more, with upcoming dates highlighted), and free tutorials from Anthropic Academy. Refresh the whole feed in one step with `/update-news`.
+- **⚡ Best Practices** — a living cheat-sheet of the skills and slash commands in your toolkit, *when* to reach for each, and the session habits that cut your token spend and lift answer quality.
+- **🛠️ Your skills, agents & MCPs** — the dashboard surfaces the Claude Code skills, agents, and connected MCP servers you have available, so your whole toolkit is visible at a glance.
+- **📖 Built-in guide** — how Mission Control works end to end, how to set it up in your own environment, and how to open your knowledge base as an Obsidian vault.
+
+Every page is plain static HTML, themed to match, and works fully offline.
 
 ---
 
