@@ -2,6 +2,8 @@
 
 ### One dashboard for every Claude Code project you run, plus a memory that lets Claude pick up exactly where you left off.
 
+*For developers juggling several projects with Claude Code who are tired of re-explaining context at the start of every session.*
+
 ![Mission Control dashboard](docs/dashboard.png)
 
 > The screenshot uses demo data. Your dashboard shows your real projects.
@@ -54,6 +56,12 @@ Mission Control ships with built-in reference pages, so the latest from Anthropi
 - **📖 Built-in guide** — how Mission Control works end to end, how to set it up in your own environment, and how to open your knowledge base as an Obsidian vault.
 
 Every page is plain static HTML, themed to match, and works fully offline.
+
+## See it in action
+
+![Mission Control tour](docs/demo.gif)
+
+> A quick tour: the portfolio overview, the built-in Claude news feed, and the best-practices cheat-sheet (demo data).
 
 ---
 
