@@ -1,52 +1,51 @@
 # Mission Control
 
-### One dashboard for every Claude Code project you run, plus a memory that lets Claude pick up exactly where you left off.
+### Claude gave you an ideas explosion. Mission Control helps you actually finish them.
 
-*For developers juggling several projects with Claude Code who are tired of re-explaining context at the start of every session.*
+*For developers whose Claude Code usage turned into 5+ half-built projects — and who want their focus back.*
 
 ![Mission Control dashboard](docs/dashboard.png)
 
 > The screenshot uses demo data. Your dashboard shows your real projects.
 
-Claude Code is sharp inside a session and forgets everything the moment it ends. And once you're juggling more than one project, it's hard to remember what's where, what's blocked, and what's next. **Mission Control fixes both** — locally, with no server, no build step, and nothing to `pip install`. A small Python script reads your project folders, your Claude sessions, and git; a fast, dark dashboard shows you the whole picture.
+Claude is so good at building that ideas turn into projects faster than you can finish them. A month in, you're juggling five repos and losing the thread on all of them. The bottleneck isn't coding anymore — it's **focus**. Mission Control is the command center that puts every project on one screen (what's active, what's blocked, what's next) and gives each one a memory so you can drop in and pick up instantly. Less context-switching tax. Fewer abandoned repos. It runs locally, with no server, no build step, and nothing to `pip install`.
 
 **Highlights**
 
-- 🗂️ **Every project on one screen** — status, next action, milestones, todos, activity, and spend
-- 🧠 **Persistent memory** — Claude starts each session already knowing your project
-- 📓 **Session journal** — history accumulates automatically, written with one `/update`
+- 🗂️ **Every project on one screen** — beat the sprawl; see what actually needs you, ranked by attention
+- 🎯 **Focus** — status, the single next action, what's blocked, and open todos for each project
+- 🧠 **Per-project memory** — drop into any project and resume instantly, no re-explaining
+- 📓 **Auto session journal** — your project's history accumulates, written with one `/update`
 - 🏗️ **Living architecture docs** — an interactive diagram and tech spec per project
 - 💸 **Usage & spend** — estimated Claude cost plus optional Higgsfield credits
-- 📰 **Stay current** — a built-in Claude news feed, events calendar, tutorials, and a skills cheat-sheet
 - 🔒 **Local & private** — no server, no build, just plain markdown you own
 
 ---
 
-## ✦ Manage your whole portfolio at a glance
+## ✦ Beat the sprawl — every project on one screen
 
-Every project you have, on one screen, ranked by what needs attention.
+The moment you have more than two or three projects, you start losing track. Mission Control gives you the one view that AI-speed building takes away: **all of it, ranked by what needs you.**
 
-- **A live command center** — status, the single next action, milestone progress, and open todos for each project, with active work surfaced first.
-- **Real activity, not guesses** — sessions and git commits over the last 30 days, last-active dates, branch and dirty-state, all read straight from disk.
-- **Usage & spend** — an estimated Claude Code cost from your session logs, optional Higgsfield credits with auto-derived renewal dates, and a per-project cost chip. Know what each project is costing you.
+- **A live command center** — status, the single next action, milestone progress, and open todos for each project, with active work surfaced first so you know exactly where to spend today.
+- **Spot what's stalling** — blocked and idle projects don't quietly rot; they're flagged. See the abandoned repo before it's abandoned.
+- **Real activity, not vibes** — sessions and git commits over the last 30 days, last-active dates, branch and dirty-state, all read straight from disk.
+- **Usage & spend** — an estimated Claude Code cost from your session logs, optional Higgsfield credits with auto-derived renewal dates, and a per-project cost chip.
 - **Drill into any project** — milestones, todos, an interactive architecture diagram, the file tree, and Claude usage on a dedicated page.
-- **Your skills, agents & MCPs** — see the shared Claude Code skills, agents, and connected MCP servers powering your work.
 
 One folder per project. Add a tiny `mission-control.md` note and the dashboard does the rest. No note? It still shows everything it can derive.
 
-## ✦ Give every project a memory
+## ✦ Drop in and resume instantly
 
-This is the part Claude Code is missing. Mission Control gives each project a **knowledge base that travels with the code** and feeds straight back into your next session.
+Switching between five projects is brutal when each restart means re-explaining everything to Claude. Mission Control gives each project a **memory that travels with the code** and feeds straight back into your next session, so context-switching stops costing you.
 
 - **A session journal** — every time you finish working, `/update` appends a dated entry: what happened, what you decided, what's next. The story of the project accumulates instead of vanishing.
 - **Auto-loaded context** — a small, stable digest (status, next action, recent history) is wired into each project's `CLAUDE.md`, so **every new session starts already knowing where things stand.** No re-explaining. No "let me re-read the codebase."
-- **Smarter and cheaper** — because Claude resumes from a compact digest instead of re-deriving context, you skip the expensive re-discovery and keep the prompt cache warm.
-- **Living architecture docs** — a per-project tech spec and an always-on architecture brief, kept current with one command, so the system's shape is never a mystery.
+- **Cheaper, too** — because Claude resumes from a compact digest instead of re-deriving context, you skip the expensive re-discovery and keep the prompt cache warm.
 - **Plain markdown, yours forever** — it's just files in a `knowledge/` folder. Commit it, diff it, or open the whole thing as an [Obsidian](https://obsidian.md) vault. No lock-in.
 
-The result: close a session without fear. Your memory now lives in the repo, so tomorrow's session, or a teammate's, starts informed.
+The result: close a session without fear, jump to a different project, and pick the first one back up cold. Your memory now lives in the repo.
 
-## ✦ Stay sharp on Claude Code itself
+## ✦ Stay sharp on Claude itself
 
 Mission Control ships with built-in reference pages, so the latest from Anthropic and the habits that make you faster are always one click away in the dashboard sidebar.
 
@@ -141,7 +140,7 @@ PRs welcome, and the bar is low — no build tools, no dependencies, just clone 
 
 ## Author
 
-Built by **[Neaam Hariri](https://github.com/NeaamHariri)** — because Claude Code kept forgetting my projects between sessions, and I got tired of re-explaining. If Mission Control saves you that same friction, a ⭐ on the repo means a lot and helps others find it.
+Built by **[Neaam Hariri](https://github.com/NeaamHariri)** — after one month of Claude Code left me juggling five half-built projects with no way to see them all or remember where each one stood. Mission Control is how I got my focus back. If it does the same for you, a ⭐ on the repo means a lot and helps others find it.
 
 ## License
 
