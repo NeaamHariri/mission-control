@@ -12,7 +12,7 @@ This is the command center for all my Claude Code projects, skills, agents, memo
 |------|---------|
 | `setup.sh` | One-command installer — installs the `/update*` commands into `~/.claude/commands/`, runs `generate.py`, prints next steps. Idempotent; re-run after `git pull`. |
 | `README.md` | Open-source front door — quick start (clone into your projects folder → `./setup.sh`), what it does, the commands. |
-| `commands/` | Source-of-truth copies of the four `/update*` slash commands, so they ship with a clone. `setup.sh` installs them (rewriting paths if the projects root isn't `~/Startups`). |
+| `commands/` | Source-of-truth copies of the slash commands (`/update`, `/update-arch`, `/update-usage`, `/update-news`, `/archive`), so they ship with a clone. `setup.sh` installs every `commands/*.md` (rewriting paths if the projects root isn't `~/Startups`). |
 | `generate.py` | Scans the projects root → writes `data.js`. Stdlib + local `git`. Root auto-detected as the checkout's parent folder (override with `MC_ROOT`). |
 | `data.js` | Generated snapshot (`window.MISSION_CONTROL`). Never hand-edit; git-ignored (personal data). |
 | `index.html` | Overview dashboard — KPIs, activity chart, project grid, shared skills/agents. |
@@ -28,7 +28,7 @@ The spine is **`~/Startups/*`** (the real project folders). Support folders are 
 
 1. **Status note** — `~/Startups/<project>/mission-control.md` (source of truth for status / next / milestones / todos / summary). Optional, degrades gracefully.
 2. **Claude Code sessions** — matched by encoding the folder's absolute path (every non-alphanumeric char → `-`) to find its folder under `~/.claude/projects/`. Yields session count, last-active, and memory files.
-3. **Git** — when the folder is a repo: branch, last commit, uncommitted count, ahead/behind, remote, and commits in the last 30 days. The activity chart overlays sessions + commits.
+3. **Git** — when the folder is a repo: branch, last commit, uncommitted count, ahead/behind, remote, and commits in the last 30 days. The activity chart overlays sessions + commits. It also captures the **lists** of uncommitted files (`dirtyFiles`, capped 50) and unpushed commits (`unpushedCommits`, ahead of upstream, capped 30); `project.html` renders these in a **Pending changes** panel — the per-project view of what's staged for the next push/version. (Parse `git status --porcelain` by whitespace-splitting, not fixed columns: `_git()` strips the output, shifting the first line's status column by one.)
 
 Each project also carries its **file structure** (a shallow tree: top-level entries with child counts, expanded one level for code projects) and any **project-local skills/agents** under `<project>/.claude/`.
 
@@ -139,6 +139,10 @@ When I run `/update` (optionally `/update <project>`), update the status note so
 5. Confirm with a one-line diff (+/- tiers, nodes, edges).
 
 **Rules:** keep node `id`s stable (rename `label`, not `id`) so the graph stays diffable; never invent components; valid JSON only (a malformed file silently drops the panel).
+
+## `/archive` — archive a project
+
+When a project is done or shelved, run `/archive` (optionally `/archive <project>`): it confirms, sets `status: archived` in that project's `mission-control.md`, appends a dated journal entry, and regenerates the dashboard. It **never deletes** — note, journal, knowledge, milestones, and code all stay; resume by running `/update` and setting the status back to `active`. Archived projects drop out of the session-start standup and render as a **compact** name-only card on the overview.
 
 ## Refresh manually
 
