@@ -56,3 +56,12 @@ Refresh the Bob MC status note for the IBM Bob project we worked on this session
 - The note is the source of truth for status / next / milestones / todos. Sessions, git status, last-active and the token/cost numbers are derived by the scanner from IBM Bob's logs — never hand-write them.
 - The journal is append-only — add a new entry, don't rewrite or delete old ones.
 - Always regenerate with `MC_ENGINE=bob` — a plain `generate.py` run rebuilds the Claude dashboard, not Bob MC.
+
+## Version control
+
+`mission-control.md` and `knowledge/` are **globally git-ignored** (`~/.config/git/ignore`) so this personal status tracking never lands in a shared repo by default.
+
+- **Team / shared project:** leave them ignored (the default — nothing to do). They're your dashboard state, not shared code.
+- **Personal project you want versioned:** un-ignore them in that repo's local `.gitignore` (`!mission-control.md`, `!knowledge/`) and commit normally.
+
+When unsure, leave them ignored — it's the safe default and you can opt in later. Only add the un-ignore overrides if the user explicitly asks.

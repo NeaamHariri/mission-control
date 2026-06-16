@@ -63,3 +63,12 @@ Update only the tiers that actually changed. **Altitude rule for the prose (brie
 - Keep the prose at the shape/why/where altitude — don't transcribe code into docs; it goes stale and misleads.
 - Valid JSON only for the diagram — a malformed file makes `generate.py` silently drop the panel.
 - Always regenerate with `MC_ENGINE=bob` — a plain `generate.py` run rebuilds the Claude dashboard, not Bob MC.
+
+## Version control
+
+`tech-architecture.json`, `knowledge/`, and the `AGENTS.md` brief are **globally git-ignored** (`~/.config/git/ignore`) so this personal tech-knowledge never lands in a shared repo by default.
+
+- **Team / shared project:** leave them ignored (the default — nothing to do).
+- **Personal project you want versioned:** un-ignore them in that repo's local `.gitignore` (`!tech-architecture.json`, `!knowledge/`, `!AGENTS.md`) and commit normally.
+
+When unsure, leave them ignored — it's the safe default and you can opt in later. Only add the un-ignore overrides if the user explicitly asks.
