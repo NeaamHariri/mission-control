@@ -154,6 +154,7 @@
     <a class="nav-item" href="#tracking"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg> How it tracks projects</a>
     <a class="nav-item" href="#files"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H3z"/></svg> Folders &amp; files</a>
     <a class="nav-item" href="#knowledge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Knowledge base</a>
+    <a class="nav-item" href="#vcs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5v7M18 11.5c0 3-3 3.5-6 3.5"/></svg> Version control</a>
     <a class="nav-item" href="#workflow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> Daily workflow</a>
     <a class="nav-item" href="#setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg> Set up your own</a>
     <a class="nav-item" href="#commands"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17l6-6-6-6M12 19h8"/></svg> Commands cheat-sheet</a>
@@ -278,6 +279,32 @@ One paragraph on where things stand.</code></pre>
   <span class="k">"edges"</span>: [{ <span class="k">"source"</span>:<span class="s">"app"</span>, <span class="k">"target"</span>:<span class="s">"api"</span>, <span class="k">"flow"</span>:<span class="s">"read"</span> }]
 }</code></pre>
       <p class="sub"><code>kind</code>: client · edge · service · core · store · external &nbsp;·&nbsp; <code>flow</code>: read · control · data · write · feedback · async</p>
+    </section>
+
+    <!-- VERSION CONTROL -->
+    <section class="doc" id="vcs">
+      <h2><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5v7M18 11.5c0 3-3 3.5-6 3.5"/></svg></span> Version control: personal vs team</h2>
+      <p>The files Mission Control writes into each project — <code>mission-control.md</code>, the <code>knowledge/</code> folder, and <code>tech-architecture.json</code> — are <b>personal dashboard state</b>, not shared product code. Whether they belong in a project's git history depends on whose repo it is.</p>
+      <div class="grid">
+        <div class="card"><h3 style="margin-top:0">Team / shared repo → ignore</h3>
+          <p style="margin-bottom:0">Keep them out of git. They're your private status notes and diagrams — teammates don't need them, and committing them just adds noise and merge conflicts to a repo other people share.</p></div>
+        <div class="card"><h3 style="margin-top:0">Personal repo → commit if you like</h3>
+          <p style="margin-bottom:0">In a solo project there's no harm committing them — they travel with the code and back up your status, journal, and architecture. Entirely your call.</p></div>
+      </div>
+      <h3>Ignore them everywhere by default (recommended)</h3>
+      <p>Add a <b>global gitignore</b> so these files are never committed by accident in any repo. Git reads <code>~/.config/git/ignore</code> automatically — no config needed:</p>
+      <pre><code><span class="c"># ~/.config/git/ignore</span>
+mission-control.md
+tech-architecture.json
+knowledge/</code></pre>
+      <p>A global ignore never <i>untracks</i> files already committed — it only stops new ones from being added — so it's safe to add at any time.</p>
+      <h3>Opt back in for one personal repo</h3>
+      <p>For a solo project where you <i>do</i> want them versioned, override the global rule in that repo's local <code>.gitignore</code>, then commit normally:</p>
+      <pre><code><span class="c"># &lt;that repo&gt;/.gitignore — re-include the tracking files here</span>
+!mission-control.md
+!tech-architecture.json
+!knowledge/</code></pre>
+      <p class="sub">The <code>/update</code> and <code>/update-arch</code> commands carry this same guidance, so the agent follows the team-vs-personal rule when it writes these files — leaving them ignored unless you ask to version them.</p>
     </section>
 
     <!-- KNOWLEDGE BASE -->
