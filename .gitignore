@@ -1,6 +1,8 @@
-# Generated snapshot — rebuilt by generate.py, and contains your personal
-# project data (paths, todos, usage). Never commit it.
+# Generated snapshots — rebuilt by generate.py, and contain your personal
+# project data (paths, todos, usage). Never commit them.
+# data.js = Claude dashboard (default); data-bob.js = Bob MC (MC_ENGINE=bob).
 data.js
+data-bob.js
 
 # Per-project generated digest (auto-loaded into sessions).
 knowledge/context.md

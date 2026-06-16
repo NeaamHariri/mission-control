@@ -41,16 +41,48 @@ from pathlib import Path
 
 HOME = Path.home()
 HERE = Path(__file__).resolve().parent
-# Projects root = the folder that *contains* this mission-control checkout, so
-# cloning into <your-projects>/mission-control works with zero config. Override
-# with the MC_ROOT env var if your dashboard lives somewhere else.
-STARTUPS = Path(os.environ.get("MC_ROOT", str(HERE.parent))).expanduser().resolve()
+
 CLAUDE_PROJECTS = HOME / ".claude" / "projects"
 CLAUDE_HOME = HOME / ".claude"
-OUT = HERE / "data.js"
+BOB_HOME = HOME / ".bob"
+# IBM Bob (ibm.bob-code extension, Cline/Roo-Code engine) keeps one folder per
+# task under its VS-Code-style app data dir, each with ui_messages.json (usage)
+# and api_conversation_history.json (the workspace it ran in).
+BOB_TASKS = (HOME / "Library" / "Application Support" / "IBM Bob" / "User"
+             / "globalStorage" / "ibm.bob-code" / "tasks")
 
-# Folders in ~/Startups that are support/scratch, not portfolio projects.
-EXCLUDE = {"_Shared", "00_Portfolio_HQ", "fin folio"}
+# --- Engine selection -------------------------------------------------------
+# Mission Control ships as one of two "engines", chosen with MC_ENGINE:
+#   claude (default) — the original dashboard: spine ~/Startups/*, Claude Code
+#                      sessions/usage from ~/.claude, MCPs from `claude mcp list`,
+#                      estimated cost (Claude logs tokens, not dollars). → data.js
+#   bob ("Bob MC")   — spine ~/bob projects/*, IBM Bob task history + *real* cost
+#                      from the ibm.bob-code storage, MCPs from
+#                      ~/.bob/settings/mcp_settings.json. → data-bob.js
+# Everything else (git, notes, knowledge, tree, rendering) is shared; only the
+# project root, the usage/session source, and the MCP source differ by engine.
+ENGINE = os.environ.get("MC_ENGINE", "claude").strip().lower()
+if ENGINE not in ("claude", "bob"):
+    ENGINE = "claude"
+
+if ENGINE == "bob":
+    BRAND = "Bob MC"
+    USAGE_PROVIDER = "IBM Bob"
+    USAGE_ESTIMATED = False          # Bob records real per-request dollar cost
+    DEFAULT_ROOT = HOME / "bob projects"
+    OUT = HERE / "data-bob.js"
+    EXCLUDE = set()
+else:
+    BRAND = "Mission Control"
+    USAGE_PROVIDER = "Claude Code"
+    USAGE_ESTIMATED = True           # cost = token counts × public pricing (est.)
+    DEFAULT_ROOT = HERE.parent       # the folder that *contains* this checkout
+    OUT = HERE / "data.js"
+    # Folders in ~/Startups that are support/scratch, not portfolio projects.
+    EXCLUDE = {"_Shared", "00_Portfolio_HQ", "fin folio"}
+
+# Projects root. Defaults per engine (above); override with the MC_ROOT env var.
+STARTUPS = Path(os.environ.get("MC_ROOT", str(DEFAULT_ROOT))).expanduser().resolve()
 
 STATUS_ORDER = {"active": 0, "in-progress": 1, "blocked": 2, "idle": 3, "archived": 4}
 
@@ -483,6 +515,160 @@ def claude_usage(claude_dir: Path):
     return {"total": tot, "byDay": by_day}
 
 
+def bob_task_index():
+    """Index every IBM Bob task by the absolute workspace directory it ran in.
+    Bob keeps one folder per task under BOB_TASKS with:
+      ui_messages.json              — per-request usage: messages with
+                                      say=='api_req_started' carry a JSON `text`
+                                      of {tokensIn, tokensOut, cacheWrites,
+                                      cacheReads, cost}; every message has a `ts`.
+      api_conversation_history.json — contains '# Current Workspace Directory (…)'.
+    Each task is one session; per-request timestamps drive the daily series.
+    Unlike Claude, Bob logs a real dollar `cost` per request — no estimation.
+    Returns { workspace_path: {sessions, lastTs, total{…}, byDay{…}, sessByDay{…}} }.
+    """
+    index = {}
+    if not BOB_TASKS.is_dir():
+        return index
+    ws_re = re.compile(r"# Current Workspace Directory \(([^)]+)\)")
+    for task in BOB_TASKS.iterdir():
+        ui = task / "ui_messages.json"
+        if not ui.exists():
+            continue
+        api = task / "api_conversation_history.json"
+        ws = None
+        if api.exists():
+            m = ws_re.search(api.read_text(encoding="utf-8", errors="ignore"))
+            if m:
+                ws = m.group(1).strip()
+        if not ws:
+            continue
+        try:
+            msgs = json.loads(ui.read_text(encoding="utf-8", errors="ignore"))
+        except (ValueError, OSError):
+            continue
+        e = index.setdefault(ws, {
+            "sessions": 0, "lastTs": 0,
+            "total": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0,
+                      "cost": 0.0, "messages": 0},
+            "byDay": {}, "sessByDay": {},
+        })
+        e["sessions"] += 1
+        task_last = 0
+        for msg in msgs:
+            ts = msg.get("ts") or 0
+            if ts > task_last:
+                task_last = ts
+            if msg.get("say") != "api_req_started":
+                continue
+            try:
+                j = json.loads(msg.get("text") or "{}")
+            except ValueError:
+                continue
+            inp = j.get("tokensIn") or 0
+            out = j.get("tokensOut") or 0
+            cw = j.get("cacheWrites") or 0
+            cr = j.get("cacheReads") or 0
+            cost = j.get("cost") or 0
+            t = e["total"]
+            t["input"] += inp
+            t["output"] += out
+            t["cacheWrite"] += cw
+            t["cacheRead"] += cr
+            t["cost"] += cost
+            t["messages"] += 1
+            if ts:
+                day = dt.datetime.fromtimestamp(ts / 1000).strftime("%Y-%m-%d")
+                d = e["byDay"].setdefault(day, {"cost": 0.0, "tokens": 0})
+                d["cost"] += cost
+                d["tokens"] += inp + out + cw + cr
+        if task_last:
+            e["lastTs"] = max(e["lastTs"], task_last)
+            day = dt.datetime.fromtimestamp(task_last / 1000).strftime("%Y-%m-%d")
+            e["sessByDay"][day] = e["sessByDay"].get(day, 0) + 1
+    for ws, e in index.items():
+        t = e["total"]
+        t["tokens"] = t["input"] + t["output"] + t["cacheRead"] + t["cacheWrite"]
+        t["cost"] = round(t["cost"], 2)
+    return index
+
+
+def bob_usage_for(index: dict, project_dir: Path):
+    """Merge every Bob workspace that *is* the project folder or lives inside it
+    into one usage record shaped like claude_usage() (so the rest of the pipeline
+    and the dashboard treat both engines identically). Returns None when the
+    project has no Bob tasks."""
+    base = str(project_dir)
+    matches = [e for ws, e in index.items()
+               if ws == base or ws.startswith(base + os.sep)]
+    if not matches:
+        return None
+    tot = {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0,
+           "cost": 0.0, "messages": 0, "tokens": 0}
+    by_day, sess_by_day, sessions, last_ts = {}, {}, 0, 0
+    for e in matches:
+        for k in ("input", "output", "cacheRead", "cacheWrite", "messages", "tokens"):
+            tot[k] += e["total"].get(k, 0)
+        tot["cost"] += e["total"]["cost"]
+        sessions += e["sessions"]
+        last_ts = max(last_ts, e["lastTs"])
+        for day, v in e["byDay"].items():
+            d = by_day.setdefault(day, {"cost": 0.0, "tokens": 0})
+            d["cost"] += v["cost"]
+            d["tokens"] += v["tokens"]
+        for day, n in e["sessByDay"].items():
+            sess_by_day[day] = sess_by_day.get(day, 0) + n
+    tot["cost"] = round(tot["cost"], 2)
+    last_active = (dt.datetime.fromtimestamp(last_ts / 1000).strftime("%Y-%m-%d")
+                   if last_ts else None)
+    return {"total": tot, "byDay": by_day, "sessByDay": sess_by_day,
+            "sessions": sessions, "lastActive": last_active}
+
+
+def scan_bob_commands() -> list:
+    """Bob's analog of shared skills: custom slash commands in ~/.bob/commands/
+    (markdown + optional `description:` frontmatter — same convention as Claude)."""
+    cdir = BOB_HOME / "commands"
+    if not cdir.is_dir():
+        return []
+    out = []
+    for f in sorted(cdir.glob("*.md")):
+        desc = ""
+        m = re.search(r"description:\s*\"?(.*)", f.read_text(errors="ignore"))
+        if m:
+            desc = m.group(1).strip().strip('"')[:160]
+        out.append({"name": "/" + f.stem, "scope": "global", "description": desc})
+    return out
+
+
+def scan_bob_mcps() -> list:
+    """Connected MCP servers for Bob, read straight from
+    ~/.bob/settings/mcp_settings.json (Bob has no `claude mcp list` equivalent).
+    stdio servers have no URL, so `host` shows the launch command instead."""
+    src = BOB_HOME / "settings" / "mcp_settings.json"
+    if not src.exists():
+        return []
+    try:
+        cfg = json.loads(src.read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        return []
+    out = []
+    for name, spec in (cfg.get("mcpServers") or {}).items():
+        spec = spec or {}
+        url = (spec.get("url") or "").strip()
+        if url:
+            host = re.sub(r"^https?://", "", url).split("/")[0]
+        else:
+            cmd = spec.get("command") or ""
+            args = [str(a) for a in (spec.get("args") or [])][:2]
+            host = " ".join([cmd, *args]).strip() or "stdio"
+        disabled = bool(spec.get("disabled"))
+        out.append({"name": name, "scope": "local", "url": url, "host": host,
+                    "status": "Disabled" if disabled else "Configured",
+                    "connected": not disabled, "account": None})
+    return out
+
+
 def read_higgsfield():
     """Read the persisted Higgsfield credit snapshot (higgsfield-usage.json next
     to this script) and enrich it with daily/monthly used + remaining credits
@@ -623,6 +809,8 @@ def scan_mcps() -> list:
     Output lines look like: 'claude.ai Notion: https://mcp.notion.com/mcp - ✓ Connected'.
     claude.ai-scoped connectors are tagged with the Claude account that owns them.
     """
+    if ENGINE == "bob":
+        return scan_bob_mcps()
     account = claude_account()
     try:
         res = subprocess.run(["claude", "mcp", "list"],
@@ -688,11 +876,32 @@ def git_info(project_dir: Path):
         info["lastCommitDate"], info["lastCommitMsg"] = last.split("|", 1)
         info["lastCommitMsg"] = info["lastCommitMsg"][:80]
     dirty = _git(project_dir, "status", "--porcelain")
-    info["dirty"] = len([l for l in dirty.splitlines() if l.strip()]) if dirty else 0
+    dirty_lines = [l for l in dirty.splitlines() if l.strip()] if dirty else []
+    info["dirty"] = len(dirty_lines)
+    # uncommitted files: porcelain "XY path" → {code, path}; cap to keep data.js bounded.
+    # Split on whitespace (not fixed offsets): _git strips the output, so the first
+    # line loses its leading status space and fixed slicing would shift by one.
+    files = []
+    for l in dirty_lines[:50]:
+        parts = l.split(None, 1)
+        if len(parts) == 2:
+            files.append({"code": parts[0], "path": parts[1]})
+        elif parts:
+            files.append({"code": "?", "path": parts[0]})
+    info["dirtyFiles"] = files
     ab = _git(project_dir, "rev-list", "--left-right", "--count", "HEAD...@{u}")
     if ab and "\t" in ab:
         a, b = ab.split("\t")
         info["ahead"], info["behind"] = int(a), int(b)
+        # unpushed commits (local, ahead of upstream): newest first, capped
+        if int(a) > 0:
+            up = _git(project_dir, "log", "@{u}..HEAD", "--format=%h\x1f%s", "--date=short")
+            commits = []
+            for line in (up.splitlines() if up else [])[:30]:
+                if "\x1f" in line:
+                    h, s = line.split("\x1f", 1)
+                    commits.append({"hash": h, "subject": s[:90]})
+            info["unpushedCommits"] = commits
     # commits per day, last 30 days
     since = (dt.date.today() - dt.timedelta(days=30)).strftime("%Y-%m-%d")
     log = _git(project_dir, "log", "--since=" + since, "--format=%cd", "--date=short")
@@ -710,17 +919,25 @@ def scan_projects():
     projects, session_usage, commit_usage, claude_by_day = [], {}, {}, {}
     if not STARTUPS.is_dir():
         return projects, session_usage, commit_usage, claude_by_day
+    bob_index = bob_task_index() if ENGINE == "bob" else {}
     for folder in sorted(STARTUPS.iterdir()):
         if not folder.is_dir() or folder.name.startswith(".") or folder.name in EXCLUDE:
             continue
         claude_dir = CLAUDE_PROJECTS / encode_claude_path(folder)
-        sessions, last_session, sess_by_day = session_stats(claude_dir)
+        if ENGINE == "bob":
+            bu = bob_usage_for(bob_index, folder)
+            sessions = bu["sessions"] if bu else 0
+            last_session = bu["lastActive"] if bu else None
+            sess_by_day = bu["sessByDay"] if bu else {}
+            cu = {"total": bu["total"], "byDay": bu["byDay"]} if bu else None
+        else:
+            sessions, last_session, sess_by_day = session_stats(claude_dir)
+            cu = claude_usage(claude_dir)
         for d, n in sess_by_day.items():
             session_usage[d] = session_usage.get(d, 0) + n
         git, commit_by_day = git_info(folder)
         for d, n in commit_by_day.items():
             commit_usage[d] = commit_usage.get(d, 0) + n
-        cu = claude_usage(claude_dir)
         if cu:
             for d, v in cu["byDay"].items():
                 acc = claude_by_day.setdefault(d, {"cost": 0.0, "tokens": 0})
@@ -783,6 +1000,8 @@ def scan_projects():
 
 
 def scan_skills():
+    if ENGINE == "bob":
+        return scan_bob_commands()
     skills = []
     sdir = CLAUDE_HOME / "skills"
     if sdir.is_dir():
@@ -800,6 +1019,8 @@ def scan_skills():
 
 
 def scan_agents():
+    if ENGINE == "bob":
+        return []          # Bob "modes" live in custom_modes.yaml; not surfaced yet
     adir = CLAUDE_HOME / "agents"
     if not adir.is_dir():
         return []
@@ -847,11 +1068,22 @@ def main():
     mcps = scan_mcps()
     repos = sum(1 for p in projects if p["git"])
     claude = claude_summary(projects, claude_by_day)
-    claude["renewsOn"] = claude_renewal()
-    higgsfield = read_higgsfield()
+    claude["renewsOn"] = claude_renewal() if ENGINE != "bob" else None
+    # Only surface the Higgsfield card when a Higgsfield MCP is actually
+    # connected (Claude: `claude mcp list`; Bob: ~/.bob/settings/mcp_settings.json).
+    # Without a connection there's no way to refresh it, so the card is hidden.
+    higgsfield_connected = any(
+        "higgsfield" in (m.get("name") or "").lower() and m.get("connected")
+        for m in mcps)
+    higgsfield = read_higgsfield() if higgsfield_connected else None
     news = read_news()
     data = {
         "generatedAt": dt.datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "engine": ENGINE,
+        "brand": BRAND,
+        "usageProvider": USAGE_PROVIDER,
+        "usageEstimated": USAGE_ESTIMATED,
+        "higgsfieldConnected": higgsfield_connected,
         "root": str(STARTUPS),
         "totals": {
             "projects": len(projects),
@@ -877,12 +1109,28 @@ def main():
     }
     OUT.write_text("window.MISSION_CONTROL = " + json.dumps(data, indent=2) + ";\n",
                    encoding="utf-8")
-    print(f"Wrote {OUT}\n  {len(projects)} projects ({repos} git repos), "
+    est = "est. " if USAGE_ESTIMATED else ""
+    print(f"Wrote {OUT}  [{BRAND}]\n  {len(projects)} projects ({repos} git repos), "
           f"{data['totals']['sessions']} sessions, {len(skills)} skills, "
           f"{len(agents)} agents, {len(mcps)} MCPs. "
-          f"Claude est. ${claude['total']['cost']:.2f} "
+          f"{USAGE_PROVIDER} {est}${claude['total']['cost']:.2f} "
           f"({claude['total']['tokens']:,} tok)"
           + (f", Higgsfield {higgsfield['credits']} cr" if higgsfield else "") + ".")
+
+    # Cascade: a default (Claude) run also refreshes the Bob MC dashboard when a
+    # ~/bob projects folder exists — so one `python3 generate.py` (and therefore
+    # `/update`, which calls it) keeps both dashboards current. MC_NO_CASCADE
+    # guards the child against re-cascading; MC_ROOT is dropped so Bob uses its
+    # own default root rather than inheriting the Claude one.
+    if (ENGINE == "claude" and not os.environ.get("MC_NO_CASCADE")
+            and (HOME / "bob projects").is_dir()):
+        env = {k: v for k, v in os.environ.items() if k != "MC_ROOT"}
+        env["MC_ENGINE"], env["MC_NO_CASCADE"] = "bob", "1"
+        try:
+            subprocess.run(["python3", str(Path(__file__).resolve())],
+                           env=env, timeout=120)
+        except Exception as e:
+            print(f"  (Bob MC refresh skipped: {e})")
 
 
 if __name__ == "__main__":

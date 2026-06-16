@@ -140,7 +140,11 @@
     transition:transform .16s ease,border-color .16s ease;position:relative;
   }
   .pcard:hover{transform:translateY(-3px);border-color:var(--border-strong)}
+  .pcard.compact{padding:12px 14px;gap:0;flex-direction:row;align-items:center;justify-content:space-between;align-self:start;opacity:.72}
+  .pcard.compact:hover{opacity:1}
+  .pcard.compact h3{font-size:14px;font-weight:600;padding-left:6px;color:var(--fg-dim)}
   .pcard .accent-bar{position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0}
+  .pcard.compact .accent-bar{top:10px;bottom:10px}
   .pcard .ptop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
   .pcard h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.2px;padding-left:8px}
   .pcard .stack{font-size:12px;color:var(--muted-fg);padding-left:8px;margin-top:2px;min-height:16px}
@@ -251,8 +255,9 @@
   <aside class="sidebar">
     <div class="brand">
       <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/></svg></span>
-      <span class="name">Mission Control<small>Command Center</small></span>
+      <span class="name" id="brand-name">Mission Control<small>Command Center</small></span>
     </div>
+    <a class="nav-item" id="engine-switch" style="display:none"></a>
     <div class="nav-label">Workspace</div>
     <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Overview</div>
     <div class="nav-item" id="nav-projects"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/></svg> Projects <span class="count" id="c-projects"></span></div>
@@ -260,9 +265,9 @@
     <div class="nav-item" id="nav-agents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 2v6M8 14h.01M16 14h.01"/></svg> Agents <span class="count" id="c-agents"></span></div>
     <div class="nav-item" id="nav-mcps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6M7 8h10v3a5 5 0 0 1-10 0zM12 16v6"/></svg> MCPs <span class="count" id="c-mcps"></span></div>
     <div class="nav-item" id="nav-update"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> /update</div>
-    <a class="nav-item" href="news.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a2 2 0 0 1 2-2h10l4 4v16M4 22h16M8 7h6M8 11h8M8 15h8"/></svg> Claude news</a>
-    <a class="nav-item" href="best-practices.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 5.4L20 8.2l-4 4 1 5.8-5-2.8-5 2.8 1-5.8-4-4 5.6-.8z"/></svg> Best practices</a>
-    <a class="nav-item" href="guide.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> How it works</a>
+    <a class="nav-item" id="nav-news" href="news.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a2 2 0 0 1 2-2h10l4 4v16M4 22h16M8 7h6M8 11h8M8 15h8"/></svg> Claude news</a>
+    <a class="nav-item" id="nav-bestpractices" href="best-practices.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 5.4L20 8.2l-4 4 1 5.8-5-2.8-5 2.8 1-5.8-4-4 5.6-.8z"/></svg> Best practices</a>
+    <a class="nav-item" id="nav-guide" href="guide.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> How it works</a>
     <div class="foot">
       Generated <code id="gen"></code><br>Refresh with <code>python3 generate.py</code>
     </div>
@@ -313,6 +318,7 @@
     <section class="panel"><div class="pb"><div class="res-list" id="mcps"></div></div></section>
 
     <div class="section-title" id="update-anchor" style="margin-top:30px"><h2>Keep it current</h2></div>
+    <div id="update-panels">
     <section class="panel update-help">
       <div class="ph"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> Run <code>/update</code> at the end of a session</h2></div>
       <div class="pb">
@@ -368,13 +374,30 @@
         <p class="uh-rule">The "Official sources" links on the news page always point to live info, so even a stale feed stays useful between refreshes.</p>
       </div>
     </section>
+    </div><!-- /#update-panels -->
+
+    <!-- Bob MC variant: shown only when engine=bob (filled in by the render script). -->
+    <div id="bob-keepcurrent" style="display:none"></div>
   </main>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="data.js"></script>
+<script>
+// Pick the dashboard data file by engine: ?engine=bob → Bob MC (data-bob.js),
+// otherwise the default Claude dashboard (data.js). Written synchronously during
+// parse so window.MISSION_CONTROL is set before the render script below runs.
+(function(){
+  var eng=new URLSearchParams(location.search).get('engine');
+  document.write('<scr'+'ipt src="data'+(eng==='bob'?'-bob':'')+'.js"><\/scr'+'ipt>');
+})();
+</script>
 <script>
 const D = window.MISSION_CONTROL || {totals:{},usage:[],projects:[],skills:[],agents:[]};
+// Engine-aware helpers: query suffix to keep links on the same dashboard, and
+// the usage provider/estimation labels (Claude = estimated; Bob = real cost).
+const EQ = D.engine==='bob' ? '&engine=bob' : '';
+const PROVIDER = D.usageProvider || 'Claude Code';
+const EST = D.usageEstimated!==false;
 const $ = s => document.querySelector(s);
 const el = (t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
 const STATUS_LABEL={active:'Active','in-progress':'In progress',blocked:'Blocked',idle:'Idle',archived:'Archived'};
@@ -409,6 +432,48 @@ const fmtRenew=iso=>{if(!iso)return '';const d=new Date(iso+'T00:00:00');const l
 const h=new Date().getHours();
 $('#greeting').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+' · '+new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
 $('#gen').textContent=D.generatedAt||'—';
+// brand (title + sidebar) + a link to switch to the other dashboard
+const BRAND=D.brand||'Mission Control';
+document.title=BRAND;
+$('#brand-name').innerHTML=`${BRAND}<small>${D.engine==='bob'?'IBM Bob':'Command Center'}</small>`;
+const sw=$('#engine-switch');
+if(sw){
+  const toBob=D.engine!=='bob';
+  sw.href=toBob?'index.html?engine=bob':'index.html';
+  sw.innerHTML=`${ICON.arrow} Switch to ${toBob?'Bob MC':'Mission Control'}`;
+  sw.style.display='';
+}
+// Engine-specific "Keep it current" help + nav. Bob MC has no Claude-Code slash
+// commands or news feed, so swap the Claude panels for a Bob-accurate one.
+if(D.engine==='bob'){
+  // Claude-worded pages don't apply to IBM Bob — hide their nav links.
+  ['#nav-news','#nav-bestpractices','#nav-guide'].forEach(s=>{const n=$(s);if(n)n.style.display='none';});
+  const up=$('#update-panels'); if(up)up.style.display='none';
+  const bob=$('#bob-keepcurrent');
+  if(bob){
+    bob.style.display='';
+    bob.innerHTML=`
+    <section class="panel update-help">
+      <div class="ph"><h2>${ICON.spark} How Bob MC stays current</h2></div>
+      <div class="pb">
+        <p class="uh-lead">Bob MC is built entirely from <b>IBM Bob</b>'s local task history — there's nothing to log by hand, and the spend is Bob's <b>real</b> per-request cost (not an estimate).</p>
+        <ol class="uh-steps">
+          <li><b>Projects</b> — every folder under <code>~/bob projects/</code>. Bob task usage is matched to a project by the workspace it ran in.</li>
+          <li><b>Usage &amp; sessions</b> — read from Bob's task store (<code>…/ibm.bob-code/tasks/</code>): one task = one session, with tokens + cost per request.</li>
+          <li><b>MCPs</b> — read from <code>~/.bob/settings/mcp_settings.json</code>. <b>Skills</b> — any commands in <code>~/.bob/commands/</code>.</li>
+        </ol>
+        <p class="uh-rule">Refresh with <code>MC_ENGINE=bob python3 generate.py</code> — or just run <code>/update</code> in a Claude Code session here: it regenerates the main dashboard and <b>cascades to rebuild Bob MC</b> automatically.</p>
+      </div>
+    </section>
+    <section class="panel update-help" style="margin-top:14px">
+      <div class="ph"><h2>${ICON.layers} Track status with a note (optional)</h2></div>
+      <div class="pb">
+        <p class="uh-lead">Want status, next-action, milestones &amp; todos on a Bob project? Drop a <code>mission-control.md</code> note in the project folder — same format as the Claude dashboard. Without one, the card shows derived data only (sessions, last active, cost).</p>
+        <p class="uh-rule">Notes live inside <code>~/bob projects/&lt;project&gt;/</code>, so they travel with the code. Bob auto-loads <code>AGENTS.md</code> / <code>.bob/rules/</code> the way Claude Code loads <code>CLAUDE.md</code>.</p>
+      </div>
+    </section>`;
+  }
+}
 $('#c-projects').textContent=D.totals.projects||0;
 $('#c-skills').textContent=D.totals.skills||0;
 $('#c-agents').textContent=D.totals.agents||0;
@@ -441,7 +506,7 @@ const activeP=D.projects.filter(p=>p.status==='active'||p.status==='in-progress'
 if(activeP.length){
   activeP.forEach(p=>{
     const c=el('a','chip',`<span class="dot" style="background:${STATUS_COLOR[p.status]}"></span>${p.name}`);
-    c.href='project.html?id='+encodeURIComponent(p.id);
+    c.href='project.html?id='+encodeURIComponent(p.id)+EQ;
     fc.appendChild(c);
   });
 }else{fc.appendChild(el('span','chip','Nothing active — pick a project'));}
@@ -451,8 +516,16 @@ const pc=$('#projects');
 D.projects.forEach(p=>{
   const ms=p.milestones||[]; const done=ms.filter(m=>m.done).length;
   const pct=ms.length?Math.round(done/ms.length*100):0;
-  const card=el('a','pcard');
-  card.href='project.html?id='+encodeURIComponent(p.id);
+  const card=el('a','pcard'+(p.status==='archived'?' compact':''));
+  card.href='project.html?id='+encodeURIComponent(p.id)+EQ;
+  if(p.status==='archived'){
+    card.innerHTML=`
+      <span class="accent-bar" style="background:${STATUS_COLOR[p.status]}"></span>
+      <h3>${p.name}</h3>
+      <span class="status s-${p.status}"><span class="dot"></span>${STATUS_LABEL[p.status]||p.status}</span>`;
+    pc.appendChild(card);
+    return;
+  }
   card.innerHTML=`
     <span class="accent-bar" style="background:${STATUS_COLOR[p.status]}"></span>
     <div class="ptop">
@@ -468,7 +541,7 @@ D.projects.forEach(p=>{
       <span class="m">${ICON.todo}${(p.todos||[]).length} todos</span>
       ${(p.skills&&p.skills.length)?`<span class="m">${ICON.skill}${p.skills.length} skills</span>`:''}
       <span class="m">${ICON.cal}${p.lastActive||'—'}</span>
-      ${p.claude?`<span class="ccost" title="Estimated Claude Code spend">${ICON.spark}${fmtUSD(p.claude.cost)} est.</span>`:''}
+      ${p.claude?`<span class="ccost" title="${EST?'Estimated ':''}${PROVIDER} spend">${ICON.spark}${fmtUSD(p.claude.cost)}${EST?' est.':''}</span>`:''}
     </div>
     ${(p.skills&&p.skills.length)?`<div class="skillrow">${p.skills.map(s=>`<span class="sk">${ICON.skill}${s.name}</span>`).join('')}</div>`:''}
     ${p.git?`<div class="gitrow">
@@ -529,8 +602,8 @@ const cu=(D.claude&&D.claude.total)||{};
 const hf=D.higgsfield;
 const claudeCard=el('div','spendcard claude',`
   <div class="sh"><span class="ic">${ICON.spark}</span>
-    <div><div class="t">Claude Code usage</div><div class="sub">${(cu.messages||0).toLocaleString()} msgs · ${D.projects.length} projects</div></div>
-    <span class="est-tag" style="margin-left:auto" title="Estimated from logged token counts × public model pricing">est.</span></div>
+    <div><div class="t">${PROVIDER} usage</div><div class="sub">${(cu.messages||0).toLocaleString()} ${D.engine==='bob'?'requests':'msgs'} · ${D.projects.length} projects</div></div>
+    ${EST?`<span class="est-tag" style="margin-left:auto" title="Estimated from logged token counts × public model pricing">est.</span>`:`<span class="est-tag" style="margin-left:auto" title="Real per-request cost logged by IBM Bob">actual</span>`}</div>
   <div class="big">${fmtUSD(cu.cost)}</div>
   <div class="spendrow">
     <span class="sm"><b>${fmtTok(cu.tokens)}</b> tokens</span>
@@ -555,7 +628,9 @@ const higgsCard=el('div','spendcard higgs',`
       :hf?`<span class="sm">Refresh via the Higgsfield MCP <b>balance</b> tool → <b>higgsfield-usage.json</b></span>`
         :`<span class="sm">No <b>higgsfield-usage.json</b> yet — add credits snapshot to show balance</span>`}
   </div>`);
-sp.appendChild(higgsCard);
+// Higgsfield card only when a Higgsfield MCP is connected; otherwise the usage
+// card spans the full row.
+if(D.higgsfieldConnected){sp.appendChild(higgsCard);}else{sp.style.gridTemplateColumns='1fr';}
 
 // usage chart
 const u=D.usage||[];

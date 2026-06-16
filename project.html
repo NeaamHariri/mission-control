@@ -94,6 +94,23 @@
   .memdoc .md-h svg{width:15px;height:15px;color:var(--violet);flex:none}
   .memdoc .md-f{font-family:var(--mono);font-size:11px;color:var(--muted-fg);margin:2px 0 0 23px}
   .memdoc .md-x{font-size:12.5px;color:var(--fg-dim);line-height:1.55;margin:5px 0 0 23px}
+  /* Pending changes panel */
+  .pcsub{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted-fg);font-weight:600;margin:6px 0 8px}
+  .pcsub svg{width:14px;height:14px}
+  .pcsub .n{margin-left:auto;font-family:var(--mono);color:var(--fg-dim)}
+  .pcrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12.5px}
+  .pcrow:last-child{border-bottom:none}
+  .pcrow .code{flex:none;width:24px;text-align:center;font-weight:700;border-radius:4px;padding:2px 0;font-size:11px}
+  .pcrow .code.m{color:var(--amber);background:rgba(245,158,11,.13)}
+  .pcrow .code.a{color:var(--green);background:rgba(34,197,94,.13)}
+  .pcrow .code.d{color:var(--red);background:rgba(239,68,68,.13)}
+  .pcrow .code.u{color:var(--primary);background:rgba(37,99,235,.16)}
+  .pcrow .path{word-break:break-all;color:var(--fg)}
+  .pcrow .hash{flex:none;color:var(--violet)}
+  .pcrow .subj{color:var(--fg);word-break:break-word;font-family:inherit}
+  .pcmore{font-size:11px;color:var(--muted-fg);padding:8px 0 2px;font-style:italic}
+  .pcgap{height:14px}
   /* Knowledge base panel */
   .ksub{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;
     color:var(--muted-fg);font-weight:600;margin:4px 0 10px}
@@ -184,11 +201,25 @@
 <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
-<script src="data.js"></script>
+<script>
+// Load the dashboard's data file by engine (?engine=bob → Bob MC), synchronously
+// so window.MISSION_CONTROL is set before the render script runs.
+(function(){
+  var eng=new URLSearchParams(location.search).get('engine');
+  document.write('<scr'+'ipt src="data'+(eng==='bob'?'-bob':'')+'.js"><\/scr'+'ipt>');
+})();
+</script>
 <script>
 const D=window.MISSION_CONTROL||{projects:[]};
 const params=new URLSearchParams(location.search);
 const id=params.get('id');
+// Engine-aware: keep the back-link on the same dashboard; label usage by provider.
+const EQ=D.engine==='bob'?'?engine=bob':'';
+const BACK='index.html'+EQ;
+const PROVIDER=D.usageProvider||'Claude Code';
+const EST=D.usageEstimated!==false;
+// Set the tab title once everything's loaded (robust to data-file load timing).
+addEventListener('DOMContentLoaded',()=>{const pr=(D.projects||[]).find(x=>x.id===id);document.title=(pr?pr.name:'Project')+' · '+(D.brand||'Mission Control');});
 const FLOW={
   read:{color:'#60A5FA',label:'Request / read'},
   control:{color:'#F59E0B',label:'Control'},
@@ -220,12 +251,13 @@ const I={
   layers:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
   book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
   journal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h13a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3z"/><path d="M18 2v4"/><path d="M7 8h7M7 12h7M7 16h4"/></svg>',
+  upload:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M12 16V4M7 9l5-5 5 5"/></svg>',
 };
 const root=document.getElementById('root');
 
 if(!p){
-  root.innerHTML=`<a class="back" href="index.html">${I.back} Back to overview</a>
-    <div class="empty">Project not found. <a style="color:#60A5FA" href="index.html">Return to dashboard</a>.</div>`;
+  root.innerHTML=`<a class="back" href="${BACK}">${I.back} Back to overview</a>
+    <div class="empty">Project not found. <a style="color:#60A5FA" href="${BACK}">Return to dashboard</a>.</div>`;
 }else{
   const ms=p.milestones||[],done=ms.filter(m=>m.done).length,pct=ms.length?Math.round(done/ms.length*100):0;
   const todos=p.todos||[],mem=p.memory||[],g=p.git,skills=p.skills||[],agents=p.agents||[],tree=p.tree||[],arch=p.arch||null;
@@ -238,7 +270,7 @@ if(!p){
   const md=s=>{const t=s||'';if(window.marked&&t.trim()){try{return marked.parse(t);}catch(e){}}return '<pre class="mdraw">'+esc(t)+'</pre>';};
   const topCount=tree.filter(t=>t.depth===0&&!t.more).length;
   root.innerHTML=`
-    <a class="back" href="index.html">${I.back} Back to overview</a>
+    <a class="back" href="${BACK}">${I.back} Back to overview</a>
     <div class="phead">
       <span class="bar" style="background:${SC[p.status]}"></span>
       <div>
@@ -332,16 +364,35 @@ if(!p){
             `:`<div class="empty">Not a git repo yet — initialize with <code>git init</code> to track activity here.</div>`}
           </div>
         </section>
+        ${g?(()=>{
+          const files=g.dirtyFiles||[], commits=g.unpushedCommits||[];
+          const codeClass=c=>{const x=(c||'').toUpperCase();
+            if(x.includes('?'))return'u'; if(x.includes('D'))return'd';
+            if(x.includes('A'))return'a'; return'm';};
+          const total=(g.dirty||files.length)+(g.ahead||commits.length);
+          return `<section class="panel">
+          <div class="ph"><h2>${I.upload} Pending changes</h2><span class="meta">${total?`${g.dirty||0} uncommitted · ${g.ahead||0} unpushed`:'in sync'}</span></div>
+          <div class="pb">
+            ${(!files.length&&!commits.length)?`<div class="empty">${g.remote?'All committed &amp; pushed — nothing staged for the next version.':'Nothing uncommitted. Add a remote to track unpushed commits.'}</div>`:''}
+            ${files.length?`<div class="pcsub">${I.git} Uncommitted <span class="n">${g.dirty||files.length}</span></div>
+              ${files.map(f=>`<div class="pcrow"><span class="code ${codeClass(f.code)}">${esc(f.code)}</span><span class="path">${esc(f.path)}</span></div>`).join('')}
+              ${(g.dirty||0)>files.length?`<div class="pcmore">+ ${(g.dirty||0)-files.length} more not shown</div>`:''}`:''}
+            ${(files.length&&commits.length)?`<div class="pcgap"></div>`:''}
+            ${commits.length?`<div class="pcsub">${I.upload} Unpushed to ${g.remote?'origin':'remote'} <span class="n">${g.ahead||commits.length}</span></div>
+              ${commits.map(c=>`<div class="pcrow"><span class="hash">${esc(c.hash)}</span><span class="subj">${esc(c.subject)}</span></div>`).join('')}
+              ${(g.ahead||0)>commits.length?`<div class="pcmore">+ ${(g.ahead||0)-commits.length} more not shown</div>`:''}`:''}
+          </div>
+        </section>`;})():''}
         <section class="panel">
-          <div class="ph"><h2>${I.spark} Claude Code usage</h2><span class="meta">${cl?'est.':'—'}</span></div>
+          <div class="ph"><h2>${I.spark} ${PROVIDER} usage</h2><span class="meta">${cl?(EST?'est.':'actual'):'—'}</span></div>
           <div class="pb">
             ${cl?`
-              <div class="gline"><span class="k">Est. spend</span><span class="v"><b style="color:#FBBF24">${fmtUSD(cl.cost)}</b></span></div>
+              <div class="gline"><span class="k">${EST?'Est. spend':'Spend'}</span><span class="v"><b style="color:#FBBF24">${fmtUSD(cl.cost)}</b></span></div>
               <div class="gline"><span class="k">Total tokens</span><span class="v">${fmtTok(cl.tokens)}</span></div>
               <div class="gline"><span class="k">Input · Output</span><span class="v">${fmtTok(cl.input)} · ${fmtTok(cl.output)}</span></div>
               <div class="gline"><span class="k">Cache read · write</span><span class="v">${fmtTok(cl.cacheRead)} · ${fmtTok(cl.cacheWrite)}</span></div>
-              <div class="gline"><span class="k">Messages</span><span class="v">${(cl.messages||0).toLocaleString()}</span></div>
-            `:`<div class="empty">No Claude Code sessions recorded for this project yet.</div>`}
+              <div class="gline"><span class="k">${D.engine==='bob'?'Requests':'Messages'}</span><span class="v">${(cl.messages||0).toLocaleString()}</span></div>
+            `:`<div class="empty">No ${PROVIDER} sessions recorded for this project yet.</div>`}
           </div>
         </section>
       </div>
