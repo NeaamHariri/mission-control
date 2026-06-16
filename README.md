@@ -82,7 +82,7 @@ open index.html                      # done
 
 ## One command keeps it all current
 
-`setup.sh` installs four slash commands you run inside any Claude Code session:
+`setup.sh` installs these slash commands you run inside any Claude Code session:
 
 | Command | What it refreshes |
 |---|---|
@@ -90,6 +90,7 @@ open index.html                      # done
 | `/update-arch` | the architecture: diagram + `CLAUDE.md` brief + deep spec |
 | `/update-usage` | Higgsfield credit usage |
 | `/update-news` | the built-in Claude news feed |
+| `/archive` | sets a project's status to archived (keeps its history; drops it from the active standup) |
 
 Each one regenerates the dashboard for you. The only one you need as a habit is **`/update`** when you wrap up.
 

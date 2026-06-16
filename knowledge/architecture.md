@@ -30,7 +30,7 @@ Pure stdlib + the local `git` binary. Grouped by concern (function names are sta
 - **Higgsfield:** `read_higgsfield()` merges the balance snapshot (`higgsfield-usage.json`) with derived series from `read_higgsfield_tx()` (reads `higgsfield-transactions.json`; signed credits; reconstructs daily used + remaining + renewal date).
 - **Knowledge:** `read_knowledge()` (journal entries + featured `architecture.md` spec + other notes; excludes generated `context.md`), `read_memory_docs()` (excerpts of `~/.claude/.../memory/*.md`), `build_digest()` + `write_digest()` (the auto-loaded `knowledge/context.md`, bounded + deterministic for cache stability).
 - **Architecture:** `read_arch()` loads `<project>/tech-architecture.json` inline; `derive_tech()` is the tech-chip fallback.
-- **Git:** `git_info()` (branch, dirty, ahead/behind, last commit, 30-day commit series).
+- **Git:** `git_info()` (branch, dirty count + `dirtyFiles[]`, ahead/behind + `unpushedCommits[]`, last commit, 30-day commit series). Lists are capped (50 files / 30 commits) to bound `data.js`; they feed the project page's Pending-changes panel.
 - **MCPs:** `scan_mcps()` parses `claude mcp list`; `claude_account()` tags claude.ai connectors with the owning account email.
 - **Structure:** `project_tree()` (shallow, expands one level for code projects), `TREE_IGNORE`.
 - **Assembly:** `scan_projects()` joins all of the above per folder (spine = `~/Startups/*`, minus `EXCLUDE`), sorts by status then recency; `main()` builds the `data` dict and writes `data.js`.
@@ -46,14 +46,14 @@ Pure stdlib + the local `git` binary. Grouped by concern (function names are sta
 - `projects[]` — see below
 - `skills[]`, `agents[]`, `mcps[]`
 
-Each **project** object: `id, name, path, status, sessions, lastActive, stack, techStack[], claude, next, tags[], milestones[{label,done}], todos[], summary, memory[], memoryDocs[], knowledge{journal[],notes[],spec}, hasNote, git, skills[], agents[], tree[], arch`.
+Each **project** object: `id, name, path, status, sessions, lastActive, stack, techStack[], claude, next, tags[], milestones[{label,done}], todos[], summary, memory[], memoryDocs[], knowledge{journal[],notes[],spec}, hasNote, git, skills[], agents[], tree[], arch`. The `git` sub-object: `{branch, remote, lastCommitDate, lastCommitMsg, dirty, dirtyFiles[{code,path}], ahead, behind, unpushedCommits[{hash,subject}], commits30d}`.
 
 The renderers read these field names directly, so **renaming a field is a breaking change** across `generate.py` + both HTML files.
 
 ## Rendering
 
-- **index.html:** KPI row, spend cards (Claude est. + Higgsfield), Activity chart (Chart.js), project cards (status, next, tech chips, milestones, git, claude cost), then Shared skills / Shared agents / Connected MCPs / "Keep it current" cards.
-- **project.html:** header + tech chips, Knowledge base panel (journal newest-first + featured architecture spec + notes, markdown via marked.js), two-column panels (Milestones/Memory/Skills · Todos/Repository/Claude usage), Tech architecture (Cytoscape + dagre, interactive), Project structure tree. Builds its own DOM from `MISSION_CONTROL.projects.find(id)`.
+- **index.html:** KPI row, spend cards (Claude est. + Higgsfield), Activity chart (Chart.js), project cards (status, next, tech chips, milestones, git, claude cost), then Shared skills / Shared agents / Connected MCPs / "Keep it current" cards. `archived` projects render as a **compact** name-only card (accent bar + name + status pill, dimmed) — the renderer branches on status and returns early.
+- **project.html:** header + tech chips, Knowledge base panel (journal newest-first + featured architecture spec + notes, markdown via marked.js), two-column panels (Milestones/Memory/Skills · Todos/Repository/**Pending changes**/Claude usage), Tech architecture (Cytoscape + dagre, interactive), Project structure tree. Builds its own DOM from `MISSION_CONTROL.projects.find(id)`. The **Pending changes** panel lists uncommitted files (status-colored badge + path) and unpushed commits (hash + subject) from the `git` sub-object — the per-project view of what's staged for the next push.
 - CDN libs load over the network even under `file://`; QA waits on `--networkidle`.
 
 ## Conventions & invariants
@@ -62,7 +62,7 @@ The renderers read these field names directly, so **renaming a field is a breaki
 - **Generated files are never hand-edited:** `data.js`, every `knowledge/context.md`. The source of truth is `mission-control.md` + `knowledge/journal.md` + the `*.json` inputs.
 - **Determinism / cache stability:** `context.md` carries no timestamps and stable ordering so its bytes don't churn → the CLAUDE.md `@import` stays cache-warm.
 - **Graceful degradation:** every optional input (note, arch JSON, knowledge folder, git, higgsfield files) is absent-safe; a missing input just drops its panel.
-- **The command loop:** `/update` (note + journal → digest), `/update-arch` (architecture: diagram + this spec + CLAUDE.md brief), `/update-usage` (Higgsfield). All end by running `generate.py`.
+- **The command loop:** `/update` (note + journal → digest), `/update-arch` (architecture: diagram + this spec + CLAUDE.md brief), `/update-usage` (Higgsfield), `/update-news` (news feed), `/archive` (sets a project `status: archived` + journal entry, preserving history). All end by running `generate.py`. Source-of-truth copies live in `commands/`; `setup.sh` installs every `commands/*.md` into `~/.claude/commands/`.
 
 ## Gotchas
 
@@ -70,6 +70,7 @@ The renderers read these field names directly, so **renaming a field is a breaki
 - Claude cost is **estimated** (cache-heavy; Opus 5-min cache rate assumed) — token counts are exact, dollars are not.
 - Higgsfield can't be fetched by `generate.py` (stdlib, no MCP); it needs `/update-usage` to refresh the two JSON files.
 - A malformed `tech-architecture.json` silently drops the diagram panel — valid JSON only.
+- `_git()` returns `stdout.strip()`, which trims the leading space off the **first** `git status --porcelain` line — so fixed-offset slicing of the status columns shifts by one on that line only. Parse porcelain by whitespace-splitting (`l.split(None,1)`), not fixed indices.
 - `project.html` is opened with `?id=<folder>`; folders with spaces (e.g. `Flywheel Creative OS`) must be URL-encoded.
 
 ## Where to look
