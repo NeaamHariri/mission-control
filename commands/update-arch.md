@@ -62,3 +62,12 @@ Update only the tiers that actually changed. **Altitude rule for the prose (brie
 - Keep diagram ids stable across edits (rename `label`, not `id`) so the graph stays diffable.
 - Keep the prose at the shape/why/where altitude — don't transcribe code into docs; it goes stale and misleads.
 - Valid JSON only for the diagram — a malformed file makes `generate.py` silently drop the panel.
+
+## Version control
+
+`tech-architecture.json` and `knowledge/` are **globally git-ignored** (`~/.config/git/ignore`) so this personal tech-knowledge never lands in a shared repo by default. (The `CLAUDE.md` brief is a normal file and is *not* ignored — it's meant to live in the repo.)
+
+- **Team / shared project:** leave the diagram + spec ignored (the default — nothing to do).
+- **Personal project you want versioned:** un-ignore them in that repo's local `.gitignore` (`!tech-architecture.json`, `!knowledge/`) and commit normally.
+
+When unsure, leave them ignored — it's the safe default and you can opt in later. Only add the un-ignore overrides if the user explicitly asks.

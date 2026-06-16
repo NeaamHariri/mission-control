@@ -368,6 +368,20 @@
         <p class="uh-rule">The "Official sources" links on the news page always point to live info, so even a stale feed stays useful between refreshes.</p>
       </div>
     </section>
+
+    <section class="panel update-help" style="margin-top:14px">
+      <div class="ph"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5v7M18 11.5c0 3-3 3.5-6 3.5"/></svg> Version control: personal vs team</h2></div>
+      <div class="pb">
+        <p class="uh-lead">The files Mission Control writes into each project — <code>mission-control.md</code>, <code>knowledge/</code>, and <code>tech-architecture.json</code> — are <b>personal dashboard state</b>, not shared product code. Whether they belong in git depends on whose repo it is.</p>
+        <ol class="uh-steps">
+          <li><b>Team / shared repo</b> — keep them <b>git-ignored</b> (the default). Teammates don't need your private notes, and committing them just adds noise.</li>
+          <li><b>Personal repo</b> — commit them if you like; they travel with the code and back up your status, journal, and diagrams. Your call.</li>
+          <li><b>Ignore everywhere by default</b> — add those patterns to <code>~/.config/git/ignore</code> (git's global ignore). It never untracks already-committed files, so it's safe to add anytime.</li>
+          <li><b>Opt one repo back in</b> — un-ignore in that repo's local <code>.gitignore</code> (<code>!mission-control.md</code>, <code>!knowledge/</code>, …) and commit normally.</li>
+        </ol>
+        <p class="uh-rule">The <code>/update</code> and <code>/update-arch</code> commands carry this rule, so the agent leaves these files ignored unless you ask to version them. Full details on the <a href="guide.html#vcs">How it works</a> page.</p>
+      </div>
+    </section>
   </main>
 </div>
 

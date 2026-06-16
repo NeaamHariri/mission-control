@@ -55,3 +55,12 @@ Refresh the Mission Control status note for the project we worked on this sessio
 - Never invent progress — only record what genuinely happened or what the user explicitly stated. Same rule applies to the journal entry.
 - The note is the source of truth for status / next / milestones / todos. Sessions, git status, last-active and memory files are derived by the scanner — never hand-write them.
 - The journal is append-only — add a new entry, don't rewrite or delete old ones.
+
+## Version control
+
+`mission-control.md` and `knowledge/` are **globally git-ignored** (`~/.config/git/ignore`) so this personal status tracking never lands in a shared repo by default. (Your project's `CLAUDE.md` is a normal file — not ignored.)
+
+- **Team / shared project:** leave them ignored (the default — nothing to do). They're your dashboard state, not shared code.
+- **Personal project you want versioned:** un-ignore them in that repo's local `.gitignore` (`!mission-control.md`, `!knowledge/`) and commit normally.
+
+When unsure, leave them ignored — it's the safe default and you can opt in later. Only add the un-ignore overrides if the user explicitly asks.
