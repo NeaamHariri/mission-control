@@ -469,22 +469,38 @@ if(D.engine==='bob'){
     bob.style.display='';
     bob.innerHTML=`
     <section class="panel update-help">
-      <div class="ph"><h2>${ICON.spark} How Bob MC stays current</h2></div>
+      <div class="ph"><h2>${ICON.spark} Run <code>/update</code> at the end of a session — inside IBM Bob</h2></div>
       <div class="pb">
-        <p class="uh-lead">Bob MC is built entirely from <b>IBM Bob</b>'s local task history — there's nothing to log by hand, and the spend is Bob's <b>real</b> per-request cost (not an estimate).</p>
+        <p class="uh-lead">IBM Bob has its own <code>/update</code> (installed in <code>~/.bob/commands/</code>). Run it <b>inside Bob</b> to refresh the project you worked on, so this dashboard is already current.</p>
         <ol class="uh-steps">
-          <li><b>Projects</b> — every folder under <code>~/bob projects/</code>. Bob task usage is matched to a project by the workspace it ran in.</li>
-          <li><b>Usage &amp; sessions</b> — read from Bob's task store (<code>…/ibm.bob-code/tasks/</code>): one task = one session, with tokens + cost per request.</li>
-          <li><b>MCPs</b> — read from <code>~/.bob/settings/mcp_settings.json</code>. <b>Skills</b> — any commands in <code>~/.bob/commands/</code>.</li>
+          <li><b>Target</b> — the <code>~/bob projects/&lt;project&gt;</code> you're working in (or <code>/update &lt;project&gt;</code>).</li>
+          <li><b>Note</b> — writes status / next / milestones / todos to that project's <code>mission-control.md</code> and appends a dated <code>journal.md</code> entry.</li>
+          <li><b>Regenerate</b> — runs <code>MC_ENGINE=bob python3 generate.py</code> so <code>data-bob.js</code> reflects the change.</li>
         </ol>
-        <p class="uh-rule">Refresh with <code>MC_ENGINE=bob python3 generate.py</code> — or just run <code>/update</code> in a Claude Code session here: it regenerates the main dashboard and <b>cascades to rebuild Bob MC</b> automatically.</p>
+        <p class="uh-rule">No note yet? The card still shows derived data (sessions, last active, cost). From a terminal you can refresh anytime with <code>MC_ENGINE=bob python3 generate.py</code>.</p>
       </div>
     </section>
     <section class="panel update-help" style="margin-top:14px">
-      <div class="ph"><h2>${ICON.layers} Track status with a note (optional)</h2></div>
+      <div class="ph"><h2>${ICON.layers} Run <code>/update-arch</code> when the architecture changed</h2></div>
       <div class="pb">
-        <p class="uh-lead">Want status, next-action, milestones &amp; todos on a Bob project? Drop a <code>mission-control.md</code> note in the project folder — same format as the Claude dashboard. Without one, the card shows derived data only (sessions, last active, cost).</p>
-        <p class="uh-rule">Notes live inside <code>~/bob projects/&lt;project&gt;/</code>, so they travel with the code. Bob auto-loads <code>AGENTS.md</code> / <code>.bob/rules/</code> the way Claude Code loads <code>CLAUDE.md</code>.</p>
+        <p class="uh-lead">Bob's <code>/update-arch</code> keeps a project's <b>technical knowledge</b> current — separate from <code>/update</code> (status). Three tiers:</p>
+        <ol class="uh-steps">
+          <li><b>Diagram</b> — <code>tech-architecture.json</code>, rendered live on the project page.</li>
+          <li><b>Always-on brief</b> — the Architecture section in <code>AGENTS.md</code> (Bob's <code>CLAUDE.md</code> equivalent, loaded every session).</li>
+          <li><b>Deep spec</b> — <code>knowledge/architecture.md</code>, featured in the Knowledge panel.</li>
+        </ol>
+        <p class="uh-rule">Then it regenerates with <code>MC_ENGINE=bob</code>. Author tech docs only for projects with real code.</p>
+      </div>
+    </section>
+    <section class="panel update-help" style="margin-top:14px">
+      <div class="ph"><h2>${ICON.plug} How the data is read</h2></div>
+      <div class="pb">
+        <p class="uh-lead">Bob MC is built entirely from <b>IBM Bob</b>'s local task history — usage is automatic and the spend is Bob's <b>real</b> per-request cost (not an estimate). There's no <code>/update-usage</code> or <code>/update-news</code> here — those are Claude-only.</p>
+        <ol class="uh-steps">
+          <li><b>Projects</b> — every folder under <code>~/bob projects/</code>; usage matched by the workspace each task ran in.</li>
+          <li><b>Usage &amp; sessions</b> — Bob's task store (<code>…/ibm.bob-code/tasks/</code>): one task = one session, tokens + cost per request.</li>
+          <li><b>MCPs</b> from <code>~/.bob/settings/mcp_settings.json</code>; <b>Skills</b> from <code>~/.bob/commands/</code>.</li>
+        </ol>
       </div>
     </section>`;
   }
