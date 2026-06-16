@@ -141,6 +141,10 @@
   }
   .pcard:hover{transform:translateY(-3px);border-color:var(--border-strong)}
   .pcard .accent-bar{position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0}
+  .pcard.compact{padding:12px 14px;gap:0;flex-direction:row;align-items:center;justify-content:space-between;align-self:start;opacity:.72}
+  .pcard.compact:hover{opacity:1}
+  .pcard.compact h3{font-size:14px;font-weight:600;padding-left:6px;color:var(--fg-dim)}
+  .pcard.compact .accent-bar{top:10px;bottom:10px}
   .pcard .ptop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
   .pcard h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.2px;padding-left:8px}
   .pcard .stack{font-size:12px;color:var(--muted-fg);padding-left:8px;margin-top:2px;min-height:16px}
@@ -370,6 +374,19 @@
     </section>
 
     <section class="panel update-help" style="margin-top:14px">
+      <div class="ph"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg> Run <code>/archive</code> when a project is done or shelved</h2></div>
+      <div class="pb">
+        <p class="uh-lead">When a project wraps up or goes on hold, run <code>/archive</code> (or <code>/archive &lt;project&gt;</code>) so it drops out of the daily standup without losing any history.</p>
+        <ol class="uh-steps">
+          <li><b>Confirm</b> — asks before changing anything.</li>
+          <li><b>Status</b> — sets <code>status: archived</code> in that project's <code>mission-control.md</code> and appends a dated journal entry.</li>
+          <li><b>Regenerate</b> — rebuilds the dashboard; the project now renders as a <b>compact</b> name-only card and leaves the active list.</li>
+        </ol>
+        <p class="uh-rule">It <b>never deletes</b> — note, journal, knowledge, milestones and code all stay. Resume any time by running <code>/update</code> and setting the status back to <code>active</code>.</p>
+      </div>
+    </section>
+
+    <section class="panel update-help" style="margin-top:14px">
       <div class="ph"><h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5v7M18 11.5c0 3-3 3.5-6 3.5"/></svg> Version control: personal vs team</h2></div>
       <div class="pb">
         <p class="uh-lead">The files Mission Control writes into each project — <code>mission-control.md</code>, <code>knowledge/</code>, and <code>tech-architecture.json</code> — are <b>personal dashboard state</b>, not shared product code. Whether they belong in git depends on whose repo it is.</p>
@@ -465,8 +482,16 @@ const pc=$('#projects');
 D.projects.forEach(p=>{
   const ms=p.milestones||[]; const done=ms.filter(m=>m.done).length;
   const pct=ms.length?Math.round(done/ms.length*100):0;
-  const card=el('a','pcard');
+  const card=el('a','pcard'+(p.status==='archived'?' compact':''));
   card.href='project.html?id='+encodeURIComponent(p.id);
+  if(p.status==='archived'){
+    card.innerHTML=`
+      <span class="accent-bar" style="background:${STATUS_COLOR[p.status]}"></span>
+      <h3>${p.name}</h3>
+      <span class="status s-${p.status}"><span class="dot"></span>${STATUS_LABEL[p.status]||p.status}</span>`;
+    pc.appendChild(card);
+    return;
+  }
   card.innerHTML=`
     <span class="accent-bar" style="background:${STATUS_COLOR[p.status]}"></span>
     <div class="ptop">

@@ -688,11 +688,32 @@ def git_info(project_dir: Path):
         info["lastCommitDate"], info["lastCommitMsg"] = last.split("|", 1)
         info["lastCommitMsg"] = info["lastCommitMsg"][:80]
     dirty = _git(project_dir, "status", "--porcelain")
-    info["dirty"] = len([l for l in dirty.splitlines() if l.strip()]) if dirty else 0
+    dirty_lines = [l for l in dirty.splitlines() if l.strip()] if dirty else []
+    info["dirty"] = len(dirty_lines)
+    # uncommitted files: porcelain "XY path" → {code, path}; cap to keep data.js bounded.
+    # Split on whitespace (not fixed offsets): _git strips the output, so the first
+    # line loses its leading status space and fixed slicing would shift by one.
+    files = []
+    for l in dirty_lines[:50]:
+        parts = l.split(None, 1)
+        if len(parts) == 2:
+            files.append({"code": parts[0], "path": parts[1]})
+        elif parts:
+            files.append({"code": "?", "path": parts[0]})
+    info["dirtyFiles"] = files
     ab = _git(project_dir, "rev-list", "--left-right", "--count", "HEAD...@{u}")
     if ab and "\t" in ab:
         a, b = ab.split("\t")
         info["ahead"], info["behind"] = int(a), int(b)
+        # unpushed commits (local, ahead of upstream): newest first, capped
+        if int(a) > 0:
+            up = _git(project_dir, "log", "@{u}..HEAD", "--format=%h\x1f%s", "--date=short")
+            commits = []
+            for line in (up.splitlines() if up else [])[:30]:
+                if "\x1f" in line:
+                    h, s = line.split("\x1f", 1)
+                    commits.append({"hash": h, "subject": s[:90]})
+            info["unpushedCommits"] = commits
     # commits per day, last 30 days
     since = (dt.date.today() - dt.timedelta(days=30)).strftime("%Y-%m-%d")
     log = _git(project_dir, "log", "--since=" + since, "--format=%cd", "--date=short")
