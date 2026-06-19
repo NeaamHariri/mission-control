@@ -111,6 +111,31 @@
   .pcrow .subj{color:var(--fg);word-break:break-word;font-family:inherit}
   .pcmore{font-size:11px;color:var(--muted-fg);padding:8px 0 2px;font-style:italic}
   .pcgap{height:14px}
+  /* Branches sub-list (Repository panel) */
+  .brsub{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted-fg);font-weight:600;margin:14px 0 8px;border-top:1px solid var(--border);padding-top:14px}
+  .brsub .brn{margin-left:auto;font-family:var(--mono);color:var(--fg-dim)}
+  .brrow{display:flex;align-items:center;gap:10px;padding:5px 0;font-family:var(--mono);font-size:13px}
+  .brdot{width:8px;height:8px;border-radius:50%;flex:none}
+  .brname{word-break:break-all}
+  .brcur{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#4ADE80;background:rgba(34,197,94,.14);padding:2px 7px;border-radius:6px}
+  .brgone{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#94A3B8;background:var(--muted);padding:2px 7px;border-radius:6px}
+  .brdate{margin-left:auto;color:var(--muted-fg);font-size:12px}
+  /* Collapsible cards */
+  .panel .ph{cursor:pointer;user-select:none;justify-content:flex-start;gap:10px}
+  .panel .ph h2{margin-right:auto}
+  .panel .ph .chev{color:var(--muted-fg);transition:transform .18s ease;flex:none}
+  .panel .ph:hover .chev{color:var(--fg)}
+  .panel.collapsed .ph .chev{transform:rotate(-90deg)}
+  .panel.collapsed .pb{display:none}
+  .summary-body{font-size:15px;color:var(--fg-dim);line-height:1.7}
+  /* Collapse-all control */
+  .cardctl{display:flex;justify-content:flex-end;margin:4px 0 14px}
+  #collapse-all{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);
+    color:var(--fg-dim);font-family:var(--mono);font-size:13px;padding:7px 14px;border-radius:8px;cursor:pointer;transition:background .15s,color .15s}
+  #collapse-all:hover{background:var(--muted);color:var(--fg)}
+  #collapse-all svg{transition:transform .18s ease;flex:none}
+  #collapse-all.allcollapsed svg{transform:rotate(-90deg)}
   /* Knowledge base panel */
   .ksub{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;
     color:var(--muted-fg);font-weight:600;margin:4px 0 10px}
@@ -279,7 +304,11 @@ if(!p){
       <div class="stat"><div class="l">Last active</div><div class="v" style="font-size:16px">${p.lastActive||'—'}</div></div>
     </div>
 
-    ${p.summary?`<div class="summary"><h2>${I.info} Summary</h2>${p.summary.replace(/</g,'&lt;')}</div>`:''}
+    <div class="cardctl">
+      <button id="collapse-all" type="button"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg><span>Collapse all</span></button>
+    </div>
+
+    ${p.summary?`<section class="panel"><div class="ph"><h2>${I.info} Summary</h2></div><div class="pb"><div class="summary-body">${p.summary.replace(/</g,'&lt;')}</div></div></section>`:''}
 
     ${!p.hasNote?`<div class="hint">No <code>mission-control.md</code> note for this project yet — showing derived data only.
       Run <code>/update</code> at the end of a session, or add a note in this project's folder to track status, milestones &amp; todos.</div>`:''}
@@ -347,6 +376,8 @@ if(!p){
               ${g.lastCommitDate?`<div class="gline"><span class="k">Last commit</span><span class="v">${g.lastCommitDate}</span></div>`:''}
               ${g.lastCommitMsg?`<div class="gline"><span class="k">Message</span><span class="v" style="max-width:60%">${g.lastCommitMsg.replace(/</g,'&lt;')}</span></div>`:''}
               ${g.remote?`<div class="gline"><span class="k">Remote</span><span class="v" style="word-break:break-all;max-width:60%">${g.remote.replace(/</g,'&lt;')}</span></div>`:''}
+              ${(g.branches&&g.branches.length)?`<div class="brsub">Local branches<span class="brn">${g.branches.length}</span></div>
+              ${g.branches.map(b=>`<div class="brrow"><span class="brdot" style="background:${b.name===g.branch?'#22C55E':'#3A496A'}"></span><span class="brname" style="color:${b.name===g.branch?'#F8FAFC':'#CBD5E1'}">${esc(b.name)}</span>${b.name===g.branch?'<span class="brcur">current</span>':(b.upstream?'':'<span class="brgone">local-only</span>')}${b.date?`<span class="brdate">${b.date}</span>`:''}</div>`).join('')}`:''}
             `:`<div class="empty">Not a git repo yet — initialize with <code>git init</code> to track activity here.</div>`}
           </div>
         </section>
@@ -413,6 +444,31 @@ if(!p){
   `;
   document.title=p.name+' · Mission Control';
   if(arch) renderArch(arch);
+  makeCollapsible();
+}
+
+// Make every project-page card a collapsible drop-down (open by default; click the
+// header to toggle). A chevron in each header rotates to show collapsed state.
+function makeCollapsible(){
+  const CHEV='<svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  document.querySelectorAll('#root .panel').forEach(panel=>{
+    const ph=panel.querySelector(':scope > .ph');
+    if(!ph || ph.querySelector('.chev')) return;
+    ph.insertAdjacentHTML('beforeend', CHEV);
+    ph.addEventListener('click', ()=>panel.classList.toggle('collapsed'));
+  });
+  // Collapse-all / expand-all toggle button.
+  const btn=document.getElementById('collapse-all');
+  if(btn){
+    const lbl=btn.querySelector('span');
+    btn.addEventListener('click', ()=>{
+      const panels=[...document.querySelectorAll('#root .panel')];
+      const anyOpen=panels.some(p=>!p.classList.contains('collapsed'));
+      panels.forEach(p=>p.classList.toggle('collapsed', anyOpen));
+      lbl.textContent=anyOpen?'Expand all':'Collapse all';
+      btn.classList.toggle('allcollapsed', anyOpen);
+    });
+  }
 }
 
 function renderArch(g){
