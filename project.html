@@ -121,6 +121,21 @@
   .brcur{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#4ADE80;background:rgba(34,197,94,.14);padding:2px 7px;border-radius:6px}
   .brgone{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#94A3B8;background:var(--muted);padding:2px 7px;border-radius:6px}
   .brdate{margin-left:auto;color:var(--muted-fg);font-size:12px}
+  /* Collapsible cards */
+  .panel .ph{cursor:pointer;user-select:none;justify-content:flex-start;gap:10px}
+  .panel .ph h2{margin-right:auto}
+  .panel .ph .chev{color:var(--muted-fg);transition:transform .18s ease;flex:none}
+  .panel .ph:hover .chev{color:var(--fg)}
+  .panel.collapsed .ph .chev{transform:rotate(-90deg)}
+  .panel.collapsed .pb{display:none}
+  .summary-body{font-size:15px;color:var(--fg-dim);line-height:1.7}
+  /* Collapse-all control */
+  .cardctl{display:flex;justify-content:flex-end;margin:4px 0 14px}
+  #collapse-all{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);
+    color:var(--fg-dim);font-family:var(--mono);font-size:13px;padding:7px 14px;border-radius:8px;cursor:pointer;transition:background .15s,color .15s}
+  #collapse-all:hover{background:var(--muted);color:var(--fg)}
+  #collapse-all svg{transition:transform .18s ease;flex:none}
+  #collapse-all.allcollapsed svg{transform:rotate(-90deg)}
   /* Knowledge base panel */
   .ksub{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;
     color:var(--muted-fg);font-weight:600;margin:4px 0 10px}
@@ -289,7 +304,11 @@ if(!p){
       <div class="stat"><div class="l">Last active</div><div class="v" style="font-size:16px">${p.lastActive||'—'}</div></div>
     </div>
 
-    ${p.summary?`<div class="summary"><h2>${I.info} Summary</h2>${p.summary.replace(/</g,'&lt;')}</div>`:''}
+    <div class="cardctl">
+      <button id="collapse-all" type="button"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg><span>Collapse all</span></button>
+    </div>
+
+    ${p.summary?`<section class="panel"><div class="ph"><h2>${I.info} Summary</h2></div><div class="pb"><div class="summary-body">${p.summary.replace(/</g,'&lt;')}</div></div></section>`:''}
 
     ${!p.hasNote?`<div class="hint">No <code>mission-control.md</code> note for this project yet — showing derived data only.
       Run <code>/update</code> at the end of a session, or add a note in this project's folder to track status, milestones &amp; todos.</div>`:''}
@@ -425,6 +444,31 @@ if(!p){
   `;
   document.title=p.name+' · Mission Control';
   if(arch) renderArch(arch);
+  makeCollapsible();
+}
+
+// Make every project-page card a collapsible drop-down (open by default; click the
+// header to toggle). A chevron in each header rotates to show collapsed state.
+function makeCollapsible(){
+  const CHEV='<svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  document.querySelectorAll('#root .panel').forEach(panel=>{
+    const ph=panel.querySelector(':scope > .ph');
+    if(!ph || ph.querySelector('.chev')) return;
+    ph.insertAdjacentHTML('beforeend', CHEV);
+    ph.addEventListener('click', ()=>panel.classList.toggle('collapsed'));
+  });
+  // Collapse-all / expand-all toggle button.
+  const btn=document.getElementById('collapse-all');
+  if(btn){
+    const lbl=btn.querySelector('span');
+    btn.addEventListener('click', ()=>{
+      const panels=[...document.querySelectorAll('#root .panel')];
+      const anyOpen=panels.some(p=>!p.classList.contains('collapsed'));
+      panels.forEach(p=>p.classList.toggle('collapsed', anyOpen));
+      lbl.textContent=anyOpen?'Expand all':'Collapse all';
+      btn.classList.toggle('allcollapsed', anyOpen);
+    });
+  }
 }
 
 function renderArch(g){
