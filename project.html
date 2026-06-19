@@ -111,6 +111,16 @@
   .pcrow .subj{color:var(--fg);word-break:break-word;font-family:inherit}
   .pcmore{font-size:11px;color:var(--muted-fg);padding:8px 0 2px;font-style:italic}
   .pcgap{height:14px}
+  /* Branches sub-list (Repository panel) */
+  .brsub{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted-fg);font-weight:600;margin:14px 0 8px;border-top:1px solid var(--border);padding-top:14px}
+  .brsub .brn{margin-left:auto;font-family:var(--mono);color:var(--fg-dim)}
+  .brrow{display:flex;align-items:center;gap:10px;padding:5px 0;font-family:var(--mono);font-size:13px}
+  .brdot{width:8px;height:8px;border-radius:50%;flex:none}
+  .brname{word-break:break-all}
+  .brcur{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#4ADE80;background:rgba(34,197,94,.14);padding:2px 7px;border-radius:6px}
+  .brgone{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#94A3B8;background:var(--muted);padding:2px 7px;border-radius:6px}
+  .brdate{margin-left:auto;color:var(--muted-fg);font-size:12px}
   /* Knowledge base panel */
   .ksub{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;
     color:var(--muted-fg);font-weight:600;margin:4px 0 10px}
@@ -347,6 +357,8 @@ if(!p){
               ${g.lastCommitDate?`<div class="gline"><span class="k">Last commit</span><span class="v">${g.lastCommitDate}</span></div>`:''}
               ${g.lastCommitMsg?`<div class="gline"><span class="k">Message</span><span class="v" style="max-width:60%">${g.lastCommitMsg.replace(/</g,'&lt;')}</span></div>`:''}
               ${g.remote?`<div class="gline"><span class="k">Remote</span><span class="v" style="word-break:break-all;max-width:60%">${g.remote.replace(/</g,'&lt;')}</span></div>`:''}
+              ${(g.branches&&g.branches.length)?`<div class="brsub">Local branches<span class="brn">${g.branches.length}</span></div>
+              ${g.branches.map(b=>`<div class="brrow"><span class="brdot" style="background:${b.name===g.branch?'#22C55E':'#3A496A'}"></span><span class="brname" style="color:${b.name===g.branch?'#F8FAFC':'#CBD5E1'}">${esc(b.name)}</span>${b.name===g.branch?'<span class="brcur">current</span>':(b.upstream?'':'<span class="brgone">local-only</span>')}${b.date?`<span class="brdate">${b.date}</span>`:''}</div>`).join('')}`:''}
             `:`<div class="empty">Not a git repo yet — initialize with <code>git init</code> to track activity here.</div>`}
           </div>
         </section>

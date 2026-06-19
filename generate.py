@@ -714,6 +714,19 @@ def git_info(project_dir: Path):
                     h, s = line.split("\x1f", 1)
                     commits.append({"hash": h, "subject": s[:90]})
             info["unpushedCommits"] = commits
+    # local branches: name, last-commit date, upstream (current flagged in render);
+    # newest-committed first, capped to keep data.js bounded.
+    refs = _git(project_dir, "for-each-ref", "--sort=-committerdate",
+                "--format=%(refname:short)\x1f%(committerdate:short)\x1f%(upstream:short)",
+                "refs/heads")
+    branches = []
+    for line in (refs.splitlines() if refs else [])[:30]:
+        parts = line.split("\x1f")
+        if parts and parts[0]:
+            branches.append({"name": parts[0],
+                             "date": parts[1] if len(parts) > 1 else "",
+                             "upstream": parts[2] if len(parts) > 2 else ""})
+    info["branches"] = branches
     # commits per day, last 30 days
     since = (dt.date.today() - dt.timedelta(days=30)).strftime("%Y-%m-%d")
     log = _git(project_dir, "log", "--since=" + since, "--format=%cd", "--date=short")
